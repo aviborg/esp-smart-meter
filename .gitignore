@@ -30,3 +30,12 @@
 *.exe
 *.out
 *.app
+
+# PlatformIO
+.pio
+.pioenvs
+.piolibdeps
+.vscode
+
+# Artifacts
+/src/web/root

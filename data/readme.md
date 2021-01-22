@@ -1,0 +1,1 @@
+This folder need to exist for the OTA to work.
