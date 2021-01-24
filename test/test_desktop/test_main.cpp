@@ -1,4 +1,4 @@
-//#include "HanReader/DlmsReader.h"
+#include "HanReader/DlmsReader.h"
 #include <unity.h>
 
 
