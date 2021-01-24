@@ -1,13 +1,6 @@
-#include <Arduino.h>
+//#include "HanReader/DlmsReader.h"
 #include <unity.h>
 
-// void setUp(void) {
-// // set stuff up here
-// }
-
-// void tearDown(void) {
-// // clean stuff up here
-// }
 
 unsigned char data1_dat[] = {
   0x7e, 0xa2, 0x43, 0x41, 0x08, 0x83, 0x13, 0x85, 0xeb, 0xe6, 0xe7, 0x00,
@@ -154,44 +147,14 @@ unsigned char p1_example_5_0_txt[] = {
   0x46, 0x0d, 0x0a
 };
 
-void test_led_builtin_pin_number(void) {
-    TEST_ASSERT_EQUAL(13, LED_BUILTIN);
+void test_function_calculator_division(void) {
+    TEST_ASSERT_EQUAL(1,1);
 }
 
-void test_led_state_high(void) {
-    digitalWrite(LED_BUILTIN, HIGH);
-    TEST_ASSERT_EQUAL(HIGH, digitalRead(LED_BUILTIN));
-}
+int main(int argc, char **argv) {
+    UNITY_BEGIN();
+    RUN_TEST(test_function_calculator_division);
+    UNITY_END();
 
-void test_led_state_low(void) {
-    digitalWrite(LED_BUILTIN, LOW);
-    TEST_ASSERT_EQUAL(LOW, digitalRead(LED_BUILTIN));
-}
-
-void setup() {
-    // NOTE!!! Wait for >2 secs
-    // if board doesn't support software reset via Serial.DTR/RTS
-    delay(2000);
-
-    UNITY_BEGIN();    // IMPORTANT LINE!
-    RUN_TEST(test_led_builtin_pin_number);
-
-    pinMode(LED_BUILTIN, OUTPUT);
-}
-
-uint8_t i = 0;
-uint8_t max_blinks = 5;
-
-void loop() {
-    if (i < max_blinks)
-    {
-        RUN_TEST(test_led_state_high);
-        delay(500);
-        RUN_TEST(test_led_state_low);
-        delay(500);
-        i++;
-    }
-    else if (i == max_blinks) {
-      UNITY_END(); // stop unit testing
-    }
+    return 0;
 }

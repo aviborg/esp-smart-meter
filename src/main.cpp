@@ -4,7 +4,7 @@
 #include <LittleFS.h>
 #include <ArduinoJson.h>
 #include <ArduinoOTA.h>
-#include "HanReader.h"
+#include "HanReader/HanReader.h"
 #include "web/AmsWebServer.h"
 #include "hw/chipSetup.h"
 

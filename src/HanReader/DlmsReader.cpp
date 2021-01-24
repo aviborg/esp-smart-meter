@@ -1,5 +1,4 @@
 #include "DlmsReader.h"
-#include <LittleFS.h>
 
 DlmsReader::DlmsReader()
 {
@@ -16,7 +15,7 @@ void DlmsReader::setJson(JsonDocument *json)
     this->jsonData = json;
 }
 
-bool DlmsReader::ParseData(byte *buffer, uint length)
+bool DlmsReader::ParseData(byte *buffer, uint32_t length)
 {
     // Data is only useful if there is a header and a datafield
     if (length > 20U)
@@ -34,7 +33,7 @@ bool DlmsReader::ParseData(byte *buffer, uint length)
     return false;
 }
 
-bool DlmsReader::ParseAXDR(byte *buffer, uint length)
+bool DlmsReader::ParseAXDR(byte *buffer, uint32_t length)
 {
     /* A data package should have the following format:
     See ISO/IEC 13239:2002
@@ -53,10 +52,10 @@ bool DlmsReader::ParseAXDR(byte *buffer, uint length)
     | Datatype | Length | Register 1 | ... | Register n |
     +---------------------------------------------------+  */
 
-    uint position = 1; // Already checked position 0
-    uint startPos = 0;
+    uint32_t position = 1; // Already checked position 0
+    uint32_t startPos = 0;
     char tempStr[33] = {0};
-    uint tempData;
+    uint32_t tempData;
     JsonObject jsonHeader = jsonData->createNestedObject("header");
     JsonObject jsonAPDU = jsonData->createNestedObject("apdu");
     JsonArray jsonPayload;
@@ -110,15 +109,15 @@ bool DlmsReader::ParseAXDR(byte *buffer, uint length)
     return GetPayload(jsonPayload, position, buffer);
 }
 
-bool DlmsReader::ParseASCII(byte *buffer, uint length)
+bool DlmsReader::ParseASCII(byte *buffer, uint32_t length)
 {
     return false;
 }
 
-bool DlmsReader::GetPayload(JsonArray &jsonData, uint &position, byte *buffer)
+bool DlmsReader::GetPayload(JsonArray &jsonData, uint32_t &position, byte *buffer)
 {
     // See IEC 62056-6-2 Table 2 for definitions
-    uint n = 0;
+    uint32_t n = 0;
     switch (buffer[position++])
     {
     case 0: // null-data
@@ -217,7 +216,7 @@ bool DlmsReader::GetPayload(JsonArray &jsonData, uint &position, byte *buffer)
     return true;
 }
 
-ulong DlmsReader::GetAddress(uint &position, byte *buffer)
+uint32_t DlmsReader::GetAddress(uint32_t &position, byte *buffer)
 {
     unsigned long address = buffer[position++];
     unsigned char n = 0; // Limit to 4 byte size to prevent endless looping and overflow
@@ -229,24 +228,24 @@ ulong DlmsReader::GetAddress(uint &position, byte *buffer)
 }
 
 template <typename T>
-T DlmsReader::GetData(uint &position, byte *buffer)
+T DlmsReader::GetData(uint32_t &position, byte *buffer)
 {
     uint64_t tempData = 0;
     uint64_t *tempPtr = NULL;
     tempPtr = &tempData;
     T value;
-    for (uint n = sizeof(T); n; --n)
+    for (uint32_t n = sizeof(T); n; --n)
         tempData = (tempData << 8) | buffer[position++];
     // value = *(T *)&tempData;  // warning: dereferencing type-punned pointer will break strict-aliasing rules [-Wstrict-aliasing]
     value = *reinterpret_cast<T *>(tempPtr);
     return value;
 }
 
-String DlmsReader::GetOctetString(uint &position, byte *buffer, uint len)
+String DlmsReader::GetOctetString(uint32_t &position, byte *buffer, uint32_t len)
 {
     String dataStr = "";
     char tempStr[4] = {0};
-    for (uint n = len; n; --n)
+    for (uint32_t n = len; n; --n)
     {
         snprintf(tempStr, 4, "%02X", buffer[position++]);
         dataStr += tempStr;
@@ -254,7 +253,7 @@ String DlmsReader::GetOctetString(uint &position, byte *buffer, uint len)
     return dataStr;
 }
 
-const char *DlmsReader::GetEnum(uint &position, byte *buffer)
+const char *DlmsReader::GetEnum(uint32_t &position, byte *buffer)
 {
     switch (buffer[position++])
     {
@@ -395,7 +394,7 @@ const char *DlmsReader::GetEnum(uint &position, byte *buffer)
     }
 }
 
-ulong DlmsReader::GetFrameFormatLength(uint &position, byte *buffer)
+uint32_t DlmsReader::GetFrameFormatLength(uint32_t &position, byte *buffer)
 {
     // Check for frame format and frame length. See 4.9 in IEC13239
     // Only frame format 0 to 7 supported
@@ -417,7 +416,7 @@ ulong DlmsReader::GetFrameFormatLength(uint &position, byte *buffer)
     return frameFormat;
 }
 
-ushort DlmsReader::GetChecksum(uint checksumPosition, byte *buffer)
+uint16_t DlmsReader::GetChecksum(uint32_t checksumPosition, byte *buffer)
 {
     return (ushort)(buffer[checksumPosition + 1] << 8 |
                     buffer[checksumPosition]);
