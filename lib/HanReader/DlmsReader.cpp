@@ -73,7 +73,7 @@ bool DlmsReader::ParseAXDR(uint8_t *buffer, uint32_t length)
     jsonHeader["control"] = buffer[position++];          // Get Control field assuming one uint8_t only
     // Check header CRC
     tempData = GetChecksum(position, buffer);
-    if (Crc16.ComputeChecksum(buffer, startPos, position - startPos) != tempData)
+    if (Crc16.ComputeChecksum(buffer, startPos, position - startPos, 0, 0xffff, 0xffff) != tempData)
         return false;
     sprintf(tempStr, "%#06X", tempData);
     jsonHeader["hcs"] = tempStr;
@@ -82,7 +82,7 @@ bool DlmsReader::ParseAXDR(uint8_t *buffer, uint32_t length)
     position += 2;
     // Check frame CRC
     tempData = GetChecksum(dataLength + startPos - 2, buffer);
-    if (Crc16.ComputeChecksum(buffer, startPos, dataLength - startPos - 1) != tempData)
+    if (Crc16.ComputeChecksum(buffer, startPos, dataLength - startPos - 1, 0, 0xffff, 0xffff) != tempData)
         return false;
     sprintf(tempStr, "%#06X", tempData);
     jsonHeader["fcs"] = tempStr;
@@ -101,20 +101,51 @@ bool DlmsReader::ParseAXDR(uint8_t *buffer, uint32_t length)
     jsonAPDU["liiap"] = tempStr;
     // Date-Time, only length 0 and 0x0C is accepted
     tempData = 12;
-    while ((buffer[position] != 0) && (buffer[position] != 0x0C) && --tempData) 
+    while ((buffer[position] != 0) && (buffer[position] != 0x0C) && --tempData)
         ++position;
-    jsonAPDU["datetime"] = GetOctetString(position, buffer, buffer[position]+1);
+    jsonAPDU["datetime"] = GetOctetString(position, buffer, buffer[position] + 1);
 
     // Payload
-    return GetPayload(jsonPayload, position, buffer);
+    return GetPayloadAXDR(jsonPayload, position, buffer);
 }
 
 bool DlmsReader::ParseASCII(uint8_t *buffer, uint32_t length)
 {
-    return false;
+    char payload[DLMS_READER_BUFFER_SIZE];
+    char row[256];
+    char *token, *element, *save_ptr;
+    uint16_t crc;
+    JsonArray jsonPayload;
+
+    // Divide the message into payload and CRC and calculate CRC
+    strcpy(payload, reinterpret_cast<char *>(buffer));
+    token = strtok(payload, "!");
+    crc = Crc16.ComputeChecksum(buffer, 0, strlen(token) + 1, 1, 0, 0);
+    token = strtok(NULL, "!");
+    if (strtol(token, NULL, 16) != crc)
+        return false; //Failed CRC
+
+    token = strtok_r(payload, "\r\n/", &save_ptr);
+    (*jsonData)["header"] = token;
+    jsonPayload = jsonData->createNestedArray("payload");
+    while (token != NULL)
+    {
+        strcpy(row, token);
+        JsonArray array = jsonPayload.createNestedArray();
+
+        element = strtok(row, "()*");
+        while (element != NULL)
+        {
+            array.add(element);
+            element = strtok(NULL, "()*");
+        }
+        token = strtok_r(NULL, "\r\n/", &save_ptr);
+    }
+
+    return true;
 }
 
-bool DlmsReader::GetPayload(JsonArray &jsonData, uint32_t &position, uint8_t *buffer)
+bool DlmsReader::GetPayloadAXDR(JsonArray &jsonData, uint32_t &position, uint8_t *buffer)
 {
     // See IEC 62056-6-2 Table 2 for definitions
     uint32_t n = 0;
@@ -130,7 +161,7 @@ bool DlmsReader::GetPayload(JsonArray &jsonData, uint32_t &position, uint8_t *bu
         JsonArray array = jsonData.createNestedArray();
         for (n = buffer[position++]; n; --n)
         {
-            if (!GetPayload(array, position, buffer))
+            if (!GetPayloadAXDR(array, position, buffer))
             {
                 return false;
             }
@@ -419,5 +450,5 @@ uint32_t DlmsReader::GetFrameFormatLength(uint32_t &position, uint8_t *buffer)
 uint16_t DlmsReader::GetChecksum(uint32_t checksumPosition, uint8_t *buffer)
 {
     return (uint16_t)(buffer[checksumPosition + 1] << 8 |
-                    buffer[checksumPosition]);
+                      buffer[checksumPosition]);
 }
