@@ -1,6 +1,7 @@
 #ifndef _HANREADER_h
 #define _HANREADER_h
 
+#ifdef ARDUINO
 #include <Arduino.h>
 #include "DlmsReader.h"
 
@@ -25,5 +26,7 @@ private:
 	double totalData = 0;
 	double invalidLen = 0;
 };
+
+#endif //ARDUINO
 
 #endif

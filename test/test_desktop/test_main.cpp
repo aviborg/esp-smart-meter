@@ -1,6 +1,9 @@
-#include "HanReader/DlmsReader.h"
+#include <stdint.h>
+#include "DlmsReader.h"
+#include <ArduinoJson.h>
 #include <unity.h>
 
+char resultStr[4096] = {0};
 
 unsigned char data1_dat[] = {
   0x7e, 0xa2, 0x43, 0x41, 0x08, 0x83, 0x13, 0x85, 0xeb, 0xe6, 0xe7, 0x00,
@@ -148,6 +151,12 @@ unsigned char p1_example_5_0_txt[] = {
 };
 
 void test_function_calculator_division(void) {
+    StaticJsonDocument<8192> jsonData;
+    DlmsReader dmr;
+    dmr.setJson(&jsonData); 
+    dmr.ParseData(data1_dat, 581);
+    serializeJson(jsonData, resultStr, 4096);
+    printf(resultStr);
     TEST_ASSERT_EQUAL(1,1);
 }
 

@@ -4,7 +4,7 @@
 #include <LittleFS.h>
 #include <ArduinoJson.h>
 #include <ArduinoOTA.h>
-#include "HanReader/HanReader.h"
+#include "HanReader.h"
 #include "web/AmsWebServer.h"
 #include "hw/chipSetup.h"
 
@@ -39,8 +39,8 @@ void setup() {
 
 void loop()
 {
-  static unsigned long lastUpdate = 0xFFFFFFFF; // Test wraparound at startup instead of waiting 50 days
-  static ushort scheduleState = 0;
+  static uint32_t lastUpdate = 0xFFFFFFFF; // Test wraparound at startup instead of waiting 50 days
+  static uint16_t scheduleState = 0;
   static bool dataRecieved = false;
   unsigned long now = millis();
   // Reading serial data should be uninterrupted

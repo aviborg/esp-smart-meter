@@ -1,4 +1,7 @@
 #include "HanReader.h"
+
+#ifdef ARDUINO
+
 #include <LittleFS.h>
 #include <ESP8266WiFi.h>
 
@@ -48,3 +51,5 @@ bool HanReader::read()
 		buffer[bytesRead++] = han->read();
 	return dataRecieved;
 }
+
+#endif //ARDUINO
