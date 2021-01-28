@@ -98,11 +98,12 @@ The project is based on the NodeMCU but most ESP-modules should work with minor 
 After first upload, the above lines may be uncommented to enable OTA. Note that you need to set the correct ip-address.
 
 ### <a name='Setup'></a>Setup
-First time the ESP powered it will enter WiFi AP mode. Search for the ESP on a from your phone and connect to its network. The blue LED will blink slowly to indicate AP-mode.
+First time the ESP powered it will enter WiFi AP mode. Search for the ESP on a phone and connect to its network. The blue LED will blink slowly to indicate AP-mode.
 
 ![Access point](img/687474703a2f2f692e696d6775722e636f6d2f595076573965716c2e706e67.jpg "Access point")
 
 Enter the credentials for you local network. You may also be able to set a local hostname that the ESP be available on, default is http://emeter
+
 The ESP will then restart and connect to you local network. If it fails for any reason it will reenter AP-mode.
 The credentials will be stored and kept even if the ESP is flashed with new firmware. To reset the settings, press and hold the flash button for 5 seconds.
 
@@ -111,7 +112,7 @@ Examples on how to integrate the data into your HAS is shown for Home assistant 
 
 What the data means is defined in the manual for your specific meter. But in general, each data set starts with an OBIS code consisting of 5 or 6 values in the range 0 to 255, typically it may look like this on hexadecimal form: 01.02.03.04.05.FF
 
-If the ESP is recieveing valid data it will publish the data on http://emeter, it aint pretty but it is only meant to be used to get a more huma readable form of the data. Nice graphics is better suited for your HAS to take care of.
+If the ESP is receiveing valid data it will publish the data on http://emeter, it aint pretty but it is only meant to be used to get a human readable form of the json data. Nice graphics is better suited for your HAS to take care of.
 
 ![Access point](img/emeter.PNG "Access point")
 
@@ -147,7 +148,7 @@ sensor:
 ```
 
 Save the file and restart your Home assistant server. You should now be able to add your integrations:
-![Home assistant](img/hass.PNG "Home assistant")
+![Home assistant](img/hass.png "Home assistant")
 
 #### <a name='openHAB'></a>openHAB
 
@@ -192,7 +193,7 @@ You also need to create the javascript file ```transform/divideBy1000.js``` if y
 })(input)
 ```
 
-Voila, the changes should take effect immediately. Here is data from openhab visualized in Grafana (data is stored and fetched from an influxdab):
+Voila, the changes should take effect immediately. Here is data from openhab visualized in Grafana (data is stored and fetched from an influxdatabase):
 
 ![openHAB](img/Screenshot_20210113-213416.png "openHAB")
 
