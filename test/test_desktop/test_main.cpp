@@ -20,11 +20,11 @@ void testASCII(void) {
     StaticJsonDocument<8192> jsonData;
     DlmsReader dmr;
     dmr.setJson(&jsonData); 
-    TEST_ASSERT_TRUE(dmr.ParseData(ascii1Data, 581));
+    TEST_ASSERT_TRUE(dmr.ParseData(ascii1Data, 678));
     serializeJson(jsonData, resultStr, 4096);
     printf(resultStr);
     printf("\n");
-    TEST_ASSERT_EQUAL(0,0); // strcmp(resultStr, ascii1Str));
+    TEST_ASSERT_EQUAL(0, strcmp(resultStr, ascii1Str));
 }
 
 int main(int argc, char **argv) {

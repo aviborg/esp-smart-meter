@@ -120,6 +120,8 @@ bool DlmsReader::ParseASCII(uint8_t *buffer, uint32_t length)
     // Divide the message into payload and CRC and calculate CRC
     strcpy(payload, reinterpret_cast<char *>(buffer));
     token = strtok(payload, "!");
+    if (strlen(token) + 5 > length) // Make sure length
+        return false;
     crc = Crc16.ComputeChecksum(buffer, 0, strlen(token) + 1, 1, 0, 0);
     token = strtok(NULL, "!");
     if (strtol(token, NULL, 16) != crc)
