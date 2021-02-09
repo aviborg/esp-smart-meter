@@ -52,7 +52,7 @@ void wifiSetup()
     htmlString += "\">http://";
     htmlString += hostName;
     htmlString += "</a><br/>You may change the hostname to a custom name, (Only numbers and lowercase letters, no spaces). ";
-    htmlString += "Note that the hostname may take a up to 60 minutes to get reqistered on your local network.";
+    htmlString += "Note that the hostname may take a up to 60 minutes to get registered on your local network.";
     WiFiManagerParameter hostNameParam("hostName", hostName, hostName, HOSTNAME_MAXLENGTH);
     WiFiManagerParameter htmlParam(htmlString.c_str());
     wifiManager.setSaveConfigCallback(saveConfigCallback);
