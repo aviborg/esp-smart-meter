@@ -41,26 +41,26 @@ void loop()
 {
   static uint32_t lastUpdate = 0xFFFFFFFF; // Test wraparound at startup instead of waiting 50 days
   static uint16_t scheduleState = 0;
-  static bool dataRecieved = false;
+  static bool dataReceived = false;
   unsigned long now = millis();
   // Reading serial data should be uninterrupted
-  // When a serial read is deteced other stuff is delayed 13 ms
+  // When a serial read is detected other stuff is delayed 13 ms
   // using a timeout not divisible by 1000 (even) and a prime number
   // reduce the risk of having the server working while data is recieved
   if (hanReader.read())
   {
     lastUpdate = now;
-    dataRecieved = true;
+    dataReceived = true;
   }
   else
   {
     if (now - lastUpdate > 13)
     {
       lastUpdate = now;
-      if (dataRecieved)
+      if (dataReceived)
       {
         hanReader.saveData();
-        dataRecieved = false;
+        dataReceived = false;
       }
       else
       {
