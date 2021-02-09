@@ -47,9 +47,13 @@ void HanReader::saveData()
 
 bool HanReader::read()
 {
+	if (bytesRead < DLMS_READER_BUFFER_SIZE)
+		return false;
 	bool dataRecieved = han->available() > 0;
-	while (han->available() > 0)
+	while ((han->available() > 0) && (bytesRead < DLMS_READER_BUFFER_SIZE))
+	{
 		buffer[bytesRead++] = han->read();
+	}
 	return dataRecieved;
 }
 
