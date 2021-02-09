@@ -10,7 +10,6 @@ HanReader::HanReader(Stream *hanPort)
 
 	han = hanPort;
 	bytesRead = 0;
-
 }
 
 void HanReader::saveData()
@@ -20,23 +19,25 @@ void HanReader::saveData()
 	jsonData["elapsedtime"] = millis();
 	jsonData["rssi"] = WiFi.RSSI();
 	jsonData["mac"] = WiFi.macAddress();
-	jsonData["localip"] = WiFi.localIP().toString(); 
+	jsonData["localip"] = WiFi.localIP().toString();
 	jsonData["ssid"] = WiFi.SSID();
 	if (bytesRead > 0)
 	{
 		reader.setJson(&jsonData);
-		if (!reader.ParseData(buffer, bytesRead))
+		// if (!reader.ParseData(buffer, bytesRead))
+		// {
+		reader.ParseData(buffer, bytesRead);
+		dataFile = LittleFS.open("/log.txt", "w");
+		dataFile.print("--- Start ---");
+		for (uint n = 0; n < bytesRead; ++n)
 		{
-			// Something went wrong, dump buffer to log.txt TODO some rotating log
-			dataFile = LittleFS.open("/log.txt", "w");
-			dataFile.print("--- Start ---");
-			for (uint n = 0; n < bytesRead; ++n) {
-				if ((n%16) == 0) dataFile.println();
-				dataFile.printf("%#04x, ", buffer[n]);
-			}
-			dataFile.println("\n---  End  ---");
-			dataFile.close();
+			if ((n % 16) == 0)
+				dataFile.println();
+			dataFile.printf("%#04x, ", buffer[n]);
 		}
+		dataFile.println("\n---  End  ---");
+		dataFile.close();
+		// }
 		bytesRead = 0;
 	}
 	dataFile = LittleFS.open("/data.json", "w");
