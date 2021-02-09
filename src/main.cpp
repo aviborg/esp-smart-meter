@@ -46,7 +46,7 @@ void loop()
   // Reading serial data should be uninterrupted
   // When a serial read is detected other stuff is delayed 13 ms
   // using a timeout not divisible by 1000 (even) and a prime number
-  // reduce the risk of having the server working while data is recieved
+  // reduce the risk of having the server working while data is received
   if (hanReader.read())
   {
     lastUpdate = now;

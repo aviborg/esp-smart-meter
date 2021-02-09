@@ -38,7 +38,7 @@ Serial data from the HAN-port is sent at 115200 baud, a message of 512 bytes wou
 
 The basic design principle is to have a major schedule frame checking the serial buffer during each cycle and save data to a json-file which is accessible from the web interface. Then there are minor frames to do other tasks when there are no serial data to process.
 
-When data is recieved it is parsed to a data.json file accessible from the web interface. This data.json file can then be fetched by a home automation server of any flavour.
+When data is received it is parsed to a data.json file accessible from the web interface. This data.json file can then be fetched by a home automation server of any flavour.
 
 Other functionality is mDNS to make the server accessible by hostname, for example http://emeter/ instead of ip address http://192.168.1.233
 This does not work on all OS'es and webbrowsers.
