@@ -26,9 +26,10 @@ void HanReader::saveData()
 		reader.setJson(&jsonData);
 		// if (!reader.ParseData(buffer, bytesRead))
 		// {
-		reader.ParseData(buffer, bytesRead);
-		dataFile = LittleFS.open("/log.txt", "w");
-		dataFile.print("--- Start ---");
+		dataFile = LittleFS.open("/log.txt", "a");
+		dataFile.print("--- Start ");
+		dataFile.print(bytesRead);
+		dataFile.print("bytes ---");
 		for (uint n = 0; n < bytesRead; ++n)
 		{
 			if ((n % 16) == 0)
@@ -38,6 +39,9 @@ void HanReader::saveData()
 		dataFile.println("\n---  End  ---");
 		dataFile.close();
 		// }
+	}
+	if (bytesRead > 10) {
+		reader.ParseData(buffer, bytesRead);
 		bytesRead = 0;
 	}
 	dataFile = LittleFS.open("/data.json", "w");
@@ -55,6 +59,11 @@ bool HanReader::read()
 		buffer[bytesRead++] = han->read();
 	}
 	return dataReceived;
+}
+
+bool HanReader::available()
+{
+	return bytesRead > 0;
 }
 
 #endif //ARDUINO

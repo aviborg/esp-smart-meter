@@ -11,17 +11,17 @@
 AmsWebServer webServer;
 HanReader hanReader(&Serial);
 
-
-
-void setup() {
-  Serial.setRxBufferSize(DLMS_READER_BUFFER_SIZE);     
+void setup()
+{
+  Serial.setRxBufferSize(DLMS_READER_BUFFER_SIZE);
   Serial.begin(115200);
 
-  pinMode(TRIGGER_PIN, INPUT);      
-  pinMode(LED_BUILTIN, OUTPUT);     // Initialize the LED_BUILTIN pin as an output
+  pinMode(TRIGGER_PIN, INPUT);
+  pinMode(LED_BUILTIN, OUTPUT); // Initialize the LED_BUILTIN pin as an output
 
   // Mount filesystem
-  if (!LittleFS.begin()) {
+  if (!LittleFS.begin())
+  {
     Serial.println("Failed to start filesystem");
     LittleFS.end();
     delay(2000);
@@ -39,51 +39,49 @@ void setup() {
 
 void loop()
 {
-  static uint32_t lastUpdate = 0xFFFFFFFF; // Test wraparound at startup instead of waiting 50 days
+  // static uint32_t lastUpdate = 0xFFFFFFFF; // Test wraparound at startup instead of waiting 50 days
   static uint16_t scheduleState = 0;
   static bool dataReceived = false;
-  unsigned long now = millis();
+  // unsigned long now = millis();
   // Reading serial data should be uninterrupted
   // When a serial read is detected other stuff is delayed 13 ms
   // using a timeout not divisible by 1000 (even) and a prime number
   // reduce the risk of having the server working while data is received
   if (hanReader.read())
   {
-    lastUpdate = now;
-    dataReceived = true;
+    // lastUpdate = now;
   }
   else
   {
-    if (now - lastUpdate > 13)
+    // if (now - lastUpdate > 13)
+    // {
+    // lastUpdate = now;
+    if (hanReader.available())
     {
-      lastUpdate = now;
-      if (dataReceived)
-      {
-        hanReader.saveData();
-        dataReceived = false;
-      }
-      else
-      {
-        switch (scheduleState++)
-        {
-        case 0:
-          resetChipOnTrigger();
-          break;
-        case 1:
-          MDNS.update();
-          break;
-        case 2:
-          webServer.loop();
-          break;
-        case 3:
-          ArduinoOTA.handle();
-          break;
-        default:
-          yield();
-          scheduleState = 0;
-          break;
-        }
-      }
+      hanReader.saveData();
     }
-  }
-}
+    // else
+    // {
+    switch (scheduleState++)
+    {
+    case 0:
+      resetChipOnTrigger();
+      break;
+    case 1:
+      MDNS.update();
+      break;
+    case 2:
+      webServer.loop();
+      break;
+    case 3:
+      ArduinoOTA.handle();
+      break;
+    default:
+      yield();
+      scheduleState = 0;
+      break;
+    }
+    // } // else
+    // } // if
+  } // else
+} // loop

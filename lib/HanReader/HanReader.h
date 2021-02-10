@@ -12,8 +12,7 @@ public:
 	HanReader(Stream *hanPort);
 	void saveData();
 	bool read();
-	void print();
-	void clear();
+	bool available();
 private:
 	Stream *han;
 	byte buffer[DLMS_READER_BUFFER_SIZE] = {0};
