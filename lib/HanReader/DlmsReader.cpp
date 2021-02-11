@@ -119,6 +119,8 @@ bool DlmsReader::ParseASCII(uint8_t *buffer, uint32_t length)
 
     // Divide the message into payload and CRC and calculate CRC
     strcpy(payload, reinterpret_cast<char *>(buffer));
+
+    // Find end of message and compute checksum
     token = strtok(payload, "!");
     if (strlen(token) + 5 > length) // Make sure length
         return false;
@@ -127,6 +129,7 @@ bool DlmsReader::ParseASCII(uint8_t *buffer, uint32_t length)
     if (strtol(token, NULL, 16) != crc)
         return false; //Failed CRC
 
+    // Get each row and parse
     token = strtok_r(payload, "\r\n/", &save_ptr);
     (*jsonData)["header"] = token;
     jsonPayload = jsonData->createNestedArray("payload");
@@ -134,7 +137,6 @@ bool DlmsReader::ParseASCII(uint8_t *buffer, uint32_t length)
     {
         strcpy(row, token);
         JsonArray array = jsonPayload.createNestedArray();
-
         element = strtok(row, "()*");
         while (element != NULL)
         {
@@ -143,7 +145,6 @@ bool DlmsReader::ParseASCII(uint8_t *buffer, uint32_t length)
         }
         token = strtok_r(NULL, "\r\n/", &save_ptr);
     }
-
     return true;
 }
 

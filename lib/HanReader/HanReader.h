@@ -16,9 +16,10 @@ public:
 	void clear();
 private:
 	Stream *han;
-	byte buffer[DLMS_READER_BUFFER_SIZE] = {0};
-	StaticJsonDocument<8192> jsonData;
-	uint bytesRead = 0;
+	
+	uint8_t buffer[DLMS_READER_BUFFER_SIZE] = {0};
+	StaticJsonDocument<DLMS_READER_BUFFER_SIZE*2> jsonData;
+	uint32_t bytesRead = 0;
 	DlmsReader reader;
 
 	uint badData[10] = {0};

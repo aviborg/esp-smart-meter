@@ -24,20 +24,19 @@ void HanReader::saveData()
 	if (bytesRead > 0)
 	{
 		reader.setJson(&jsonData);
-		// if (!reader.ParseData(buffer, bytesRead))
-		// {
-		reader.ParseData(buffer, bytesRead);
-		dataFile = LittleFS.open("/log.txt", "w");
-		dataFile.print("--- Start ---");
-		for (uint n = 0; n < bytesRead; ++n)
+		if (!reader.ParseData(buffer, bytesRead))
 		{
-			if ((n % 16) == 0)
-				dataFile.println();
-			dataFile.printf("%#04x, ", buffer[n]);
+			dataFile = LittleFS.open("/log.txt", "w");
+			dataFile.print("--- Start ---");
+			for (uint n = 0; n < bytesRead; ++n)
+			{
+				if ((n % 16) == 0)
+					dataFile.println();
+				dataFile.printf("%#04x, ", buffer[n]);
+			}
+			dataFile.println("\n---  End  ---");
+			dataFile.close();
 		}
-		dataFile.println("\n---  End  ---");
-		dataFile.close();
-		// }
 		bytesRead = 0;
 	}
 	dataFile = LittleFS.open("/data.json", "w");
@@ -51,7 +50,7 @@ bool HanReader::read()
 		return false;
 	bool dataReceived = han->available() > 0;
 	while ((han->available() > 0) && (bytesRead < DLMS_READER_BUFFER_SIZE))
-	{
+	{	
 		buffer[bytesRead++] = han->read();
 	}
 	return dataReceived;

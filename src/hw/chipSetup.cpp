@@ -98,7 +98,7 @@ void resetChipOnTrigger()
             Dir dir = LittleFS.openDir("/");
             while (dir.next())
             {   // Only deletes files not folders?
-                Serial.println(dir.fileName());
+                // Serial.println(dir.fileName());
                 LittleFS.remove(dir.fileName());
             }
             digitalWrite(LED_BUILTIN, HIGH);

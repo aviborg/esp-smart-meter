@@ -10,7 +10,7 @@ typedef std::string String;
 #endif
 #include <ArduinoJson.h>
 #include "Crc16.h"
-#define DLMS_READER_BUFFER_SIZE 4096U
+#define DLMS_READER_BUFFER_SIZE 2048U
 #define DLMS_READER_MAX_ADDRESS_SIZE 5
 #define DLMS_READER_AXDR_STARTSTOP_FLAG 0x7E
 #define DLMS_READER_ASCII_START_FLAG 0x2F

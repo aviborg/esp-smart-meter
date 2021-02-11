@@ -14,15 +14,14 @@ HanReader hanReader(&Serial);
 
 
 void setup() {
-  Serial.setRxBufferSize(DLMS_READER_BUFFER_SIZE);     
   Serial.begin(115200);
 
   pinMode(TRIGGER_PIN, INPUT);      
   pinMode(LED_BUILTIN, OUTPUT);     // Initialize the LED_BUILTIN pin as an output
-
+  digitalWrite(LED_BUILTIN, LOW);
+  
   // Mount filesystem
   if (!LittleFS.begin()) {
-    Serial.println("Failed to start filesystem");
     LittleFS.end();
     delay(2000);
     ESP.reset();
