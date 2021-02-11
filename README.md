@@ -1,4 +1,6 @@
 # esp-smart-meter
+![PlatformIO CI](https://github.com/aviborg/esp-smart-meter/workflows/PlatformIO%20CI/badge.svg)
+
 A reliable ESP8266 application to read out data from COSEM/DLMS based smart meters using OBIS code/structure.
 
 <!-- vscode-markdown-toc -->
