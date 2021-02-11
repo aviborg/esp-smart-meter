@@ -146,6 +146,10 @@ sensor:
         friendly_name: 'Reactive energy export'
         value_template: '{{ states.sensor.electricity_meter.attributes["payload0XEB85"][0][4][1] | float/1000 }}'
 ```
+Note: Home assistant seems to have some issues finding the ESP by mDNS hostname. Try using the ip-address if the sensor is not found, in this example: 
+```yaml
+    resource: http://192.168.1.233/data.json
+``` 
 
 Save the file and restart your Home assistant server. You should now be able to add your integrations:
 ![Home assistant](img/hass.png "Home assistant")

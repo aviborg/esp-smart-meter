@@ -12,8 +12,6 @@ public:
 	HanReader(Stream *hanPort);
 	void saveData();
 	bool read();
-	void print();
-	void clear();
 private:
 	Stream *han;
 	
@@ -22,10 +20,6 @@ private:
 	uint32_t bytesRead = 0;
 	DlmsReader reader;
 
-	uint badData[10] = {0};
-	double goodData = 0;
-	double totalData = 0;
-	double invalidLen = 0;
 };
 
 #endif //ARDUINO
