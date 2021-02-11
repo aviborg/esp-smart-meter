@@ -5,7 +5,7 @@
 #include <Arduino.h>
 #else
 #include <string>
-#include <stdint.h>
+#include <cstdint>
 typedef std::string String;
 #endif
 #include <ArduinoJson.h>
