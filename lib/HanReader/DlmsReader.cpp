@@ -140,7 +140,14 @@ bool DlmsReader::ParseASCII(uint8_t *buffer, uint32_t length)
         element = strtok(row, "()*");
         while (element != NULL)
         {
-            array.add(element);
+            if (strpbrk(element, "-:kWhkvarhVAms") == NULL)
+            {
+                array.add(atof(element));
+            }
+            else
+            {
+                array.add(element);
+            }
             element = strtok(NULL, "()*");
         }
         token = strtok_r(NULL, "\r\n/", &save_ptr);
