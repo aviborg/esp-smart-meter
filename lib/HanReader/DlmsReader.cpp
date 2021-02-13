@@ -63,6 +63,7 @@ bool DlmsReader::ParseAXDR(uint8_t *buffer, uint32_t length)
     if (buffer[position] == DLMS_READER_AXDR_STARTSTOP_FLAG)
         ++position;
     startPos = position; // Save start position needed for CRC later
+    jsonHeader["encoding"] = "A-XDR";
     jsonHeader["frameformat"] = GetFrameFormatLength(position, buffer);
     jsonHeader["segmentation"] = segmentation;
     jsonHeader["datalength"] = dataLength;
@@ -111,46 +112,64 @@ bool DlmsReader::ParseAXDR(uint8_t *buffer, uint32_t length)
 
 bool DlmsReader::ParseASCII(uint8_t *buffer, uint32_t length)
 {
-    char payload[DLMS_READER_BUFFER_SIZE];
+    uint32_t index;
     char row[256];
+    const char replaceC[] = "\\";
+    const char rowSep[] = "\r\n";
+    const char eleSep[] = "()*";
     char *token, *element, *save_ptr;
-    uint16_t crc;
-    JsonArray jsonPayload;
-
-    // Divide the message into payload and CRC and calculate CRC
-    strcpy(payload, reinterpret_cast<char *>(buffer));
+    uint16_t crcCalc, crcMess;
+    JsonObject jsonObject;
+    // JsonObject jsonHeader;
+    JsonArray jsonArray;
+    char *payload = reinterpret_cast<char *>(buffer);
 
     // Find end of message and compute checksum
-    token = strtok(payload, "!");
-    if (strlen(token) + 5 > length) // Make sure length
+    index = strcspn(payload, "!");
+    if (index >= length)
+    {
+        (*jsonData)["indexerror"] = "No ! was found in message";
         return false;
-    crc = Crc16.ComputeChecksum(buffer, 0, strlen(token) + 1, 1, 0, 0);
-    token = strtok(NULL, "!");
-    if (strtol(token, NULL, 16) != crc)
-        return false; //Failed CRC
+    }
+    crcCalc = Crc16.ComputeChecksum(buffer, 0, index + 1, 1, 0, 0);
+    crcMess = static_cast<uint16_t>(strtol(payload + index + 1, NULL, 16));
+    if (crcMess != crcCalc)
+    {
+        sprintf(row, "Calculated CRC: %04X not equal to message CRC: %04X", crcCalc, crcMess);
+        (*jsonData)["crcerror"] = row;
+        return false;
+    }
+
+    // Replace escape characters and other
+    for (element = strpbrk(payload, replaceC); element != NULL; element = strpbrk(element + 1, replaceC))
+        *element = '_';
 
     // Get each row and parse
-    token = strtok_r(payload, "\r\n/", &save_ptr);
-    (*jsonData)["header"] = token;
-    jsonPayload = jsonData->createNestedArray("payload");
+    payload = payload + 1;                        // Skip leading /
+    strtok(payload, "!");                         // Replaces ! to NULL
+    token = strtok_r(payload, rowSep, &save_ptr); // token will now hold first row
+    jsonObject = jsonData->createNestedObject("header");
+    jsonObject["id"] = token; // Get meter id
+    jsonObject["encoding"] = "ASCII";
+    sprintf(row, "%04X", crcCalc);
+    jsonObject["crc"] = row;
+    jsonObject = jsonData->createNestedObject("payload");
+    jsonObject = jsonObject.createNestedObject(token);
+    token = strtok_r(NULL, rowSep, &save_ptr);
     while (token != NULL)
     {
         strcpy(row, token);
-        JsonArray array = jsonPayload.createNestedArray();
-        element = strtok(row, "()*");
-        while (element != NULL)
+        element = strtok(row, eleSep);
+        JsonArray array = jsonObject.createNestedArray(element);    // First element is the OBIS code
+        // Get data elements
+        for (element = strtok(NULL, eleSep); element != NULL; element = strtok(NULL, eleSep))
         {
             if (strpbrk(element, "-:kWhkvarhVAms") == NULL)
-            {
                 array.add(atof(element));
-            }
             else
-            {
-                array.add(element);
-            }
-            element = strtok(NULL, "()*");
+                array.add(element);      
         }
-        token = strtok_r(NULL, "\r\n/", &save_ptr);
+        token = strtok_r(NULL, rowSep, &save_ptr);
     }
     return true;
 }

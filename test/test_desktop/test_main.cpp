@@ -20,11 +20,13 @@ void testASCII1(void) {
     StaticJsonDocument<8192> jsonData;
     DlmsReader dmr;
     dmr.setJson(&jsonData);
-
-    TEST_ASSERT_TRUE(dmr.ParseData(ascii1Data, 678));
+    bool result;
+    result = dmr.ParseData(ascii1Data, strlen(reinterpret_cast<char*>(ascii1Data)));
+    
     serializeJson(jsonData, resultStr, 4096);
     printf(resultStr);
     printf("\n");
+    TEST_ASSERT_TRUE(result);
     TEST_ASSERT_EQUAL(0, strcmp(resultStr, ascii1Str));
 }
 
@@ -32,11 +34,13 @@ void testASCII2(void) {
     StaticJsonDocument<8192> jsonData;
     DlmsReader dmr;
     dmr.setJson(&jsonData);
-
-    TEST_ASSERT_TRUE(dmr.ParseData(ascii2Data, 712));
+    bool result;
+    result = dmr.ParseData(ascii2Data, strlen(reinterpret_cast<char*>(ascii2Data)));
+    
     serializeJson(jsonData, resultStr, 4096);
     printf(resultStr);
     printf("\n");
+    TEST_ASSERT_TRUE(result);
     TEST_ASSERT_EQUAL(0, strcmp(resultStr, ascii2Str));
 }
 
