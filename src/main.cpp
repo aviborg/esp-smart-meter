@@ -28,6 +28,7 @@ void setup() {
   }
 
   LittleFS.remove("/log.txt");
+  LittleFS.remove("/data.json");
 
   // Setup wifi and webserver
   wifiSetup();

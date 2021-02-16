@@ -114,19 +114,23 @@ What the data means is defined in the manual for your specific meter. But in gen
 
 If the ESP is receiveing valid data it will publish the data on http://emeter, it aint pretty but it is only meant to be used to get a human readable form of the json data. Nice graphics is better suited for your HAS to take care of.
 
-![Access point](img/emeter.PNG "Access point")
+![Access point](img/ascii.PNG "Access point")
 
 
-The above has more readabilty than the source of the data which is available on http://emeter/data.json:
+The above has more readabilty than the source of the json data which is available on http://emeter/data.json:
 ```
-{"elapsedtime":546471306,"rssi":-84,"mac":"60:01:94:73:67:CF","localip":"192.168.1.233","ssid":"Lingonet2","header":{"frameformat":3,"segmentation":0,"datalength":579,"client":65,"server":2179,"control":19,"hcs":"0XEB85","fcs":"0XBE70","llc":"0XE6E700"},"apdu":{"tag":15,"liiap":"0X40000000","datetime":"00"},"payload0XEB85":[[["0000010000FF","07E5011C04131914FF8000FF"],["0100010700FF",1106,[0,"W"]],["0100020700FF",0,[0,"W"]],["0100030700FF",0,[0,"var"]],["0100040700FF",407,[0,"var"]],["01001F0700FF",18,[-1,"A"]],["0100330700FF",23,[-1,"A"]],["0100470700FF",20,[-1,"A"]],["0100200700FF",2345,[-1,"V"]],["0100340700FF",2350,[-1,"V"]],["0100480700FF",2353,[-1,"V"]],["0100150700FF",311,[0,"W"]],["0100160700FF",0,[0,"W"]],["0100170700FF",0,[0,"var"]],["0100180700FF",284,[0,"var"]],["0100290700FF",502,[0,"W"]],["01002A0700FF",0,[0,"W"]],["01002B0700FF",222,[0,"var"]],["01002C0700FF",0,[0,"var"]],["01003D0700FF",288,[0,"W"]],["01003E0700FF",0,[0,"W"]],["01003F0700FF",0,[0,"var"]],["0100400700FF",369,[0,"var"]],["0100010800FF",3108526,[0,"Wh"]],["0100020800FF",0,[0,"Wh"]],["0100030800FF",380,[0,"varh"]],["0100040800FF",1005168,[0,"varh"]]]]}
+{"elapsedtime":2384971,"rssi":-59,"mac":"60:01:94:73:67:CF","localip":"192.168.1.233","ssid":"Lingonet2","header":{"encoding":"A-XDR","frameformat":3,"segmentation":0,"datalength":579},"payload":{"ELL5_253833635_A":{"0-0:1.0.0":["210210141331W"],"1-0:1.8.0":[5287.591,"kWh"],"1-0:2.8.0":[0.354,"kWh"],"1-0:3.8.0":[2323.243,"kvarh"],"1-0:4.8.0":[330.519,"kvarh"],"1-0:1.7.0":[2.87,"kW"],"1-0:2.7.0":[0,"kW"],"1-0:3.7.0":[1.806,"kvar"],"1-0:4.7.0":[0,"kvar"],"1-0:21.7.0":[1.115,"kW"],"1-0:41.7.0":[0.922,"kW"],"1-0:61.7.0":[0.831,"kW"],"1-0:22.7.0":[0,"kW"],"1-0:42.7.0":[0,"kW"],"1-0:62.7.0":[0,"kW"],"1-0:23.7.0":[0.283,"kvar"],"1-0:43.7.0":[0.766,"kvar"],"1-0:63.7.0":[0.756,"kvar"],"1-0:24.7.0":[0,"kvar"],"1-0:44.7.0":[0,"kvar"],"1-0:64.7.0":[0,"kvar"],"1-0:32.7.0":[224.4,"V"],"1-0:52.7.0":[227.3,"V"],"1-0:72.7.0":[228,"V"],"1-0:31.7.0":[5.2,"A"],"1-0:51.7.0":[5.3,"A"],"1-0:71.7.0":[4.9,"A"]}}}
 ```
+You can paste the above json into an online json linter to parse it for better readability. One good is: https://jsonlint.com/
 
 #### <a name='Homeassistant'></a>Home assistant
 
 To integrate into home assistant you need to add a few lines to ```configuration.yaml```. How to edit this file is described here: https://www.home-assistant.io/getting-started/configuration/ 
 
-The first reading relates to the red circle and the second reading relates to the blue circles in the image above. The values are divided by 1000 to get kW and kvar respectively.
+Take a look at the readout from http://emeter:
+![Access point](img/ascii.PNG "Access point")
+
+Below is how to readout the current for the three phases:
 
 ```yaml
 sensor:
@@ -136,15 +140,18 @@ sensor:
     scan_interval: 10
     value_template: 'OK'
     json_attributes:
-      - payload0XEB85
+      - payload
   - platform: template
     sensors:
-      active_energy_import:
-        friendly_name: 'Active energy import'
-        value_template: '{{ states.sensor.electricity_meter.attributes["payload0XEB85"][0][1][1] | float/1000 }}'
-      reactive_energy_export:
-        friendly_name: 'Reactive energy export'
-        value_template: '{{ states.sensor.electricity_meter.attributes["payload0XEB85"][0][4][1] | float/1000 }}'
+      p1_current:
+        friendly_name: 'P1 Current'
+        value_template: '{{ states.sensor.electricity_meter.attributes["payload"]["ELL5_253833635_A"]["1-0:31.7.0"][0] }}'
+      p2_current:
+        friendly_name: 'P2 Current'
+        value_template: '{{ states.sensor.electricity_meter.attributes["payload"]["ELL5_253833635_A"]["1-0:51.7.0"][0] }}'
+      p3_current:
+        friendly_name: 'P3 Current'
+        value_template: '{{ states.sensor.electricity_meter.attributes["payload"]["ELL5_253833635_A"]["1-0:71.7.0"][0] }}'
 ```
 Note: Home assistant seems to have some issues finding the ESP by mDNS hostname. Try using the ip-address if the sensor is not found, in this example: 
 ```yaml
@@ -156,7 +163,7 @@ Save the file and restart your Home assistant server. You should now be able to 
 
 #### <a name='openHAB'></a>openHAB
 
-To get this working with OpenHAB you need some add-ons. This was tested with 2.4.0, although version 3.0.0 is available, the method should be the same. How add-on are added is described here: https://www.openhab.org/docs/configuration/addons.html
+To get this working with OpenHAB you need some add-ons. This was tested with 2.4.0, although version 3.0.0 is available, the method should be the same. How add-ons are added is described here: https://www.openhab.org/docs/configuration/addons.html
 The following add-on are required:
 - HTTP Binding
 - JSONPath Transformation
@@ -181,12 +188,15 @@ format=true
 emeter.url=http://emeter/data.json
 emeter.updateInterval=10000
 ```
-
-Create a new items file ```items/emeter.items``` with the below content. The first item relates to the red circles and the second line to the blue circles in the image above.
+Take a look at the readout from http://emeter:
+![A-XDR](img/axdr.PNG "A-XDR")
+To readout the current then create a new items file ```items/emeter.items``` with the below content based on the image above.
 ```
-Number Total_Active_Power_In "Total active power import: [JS(divideBy1000.js):%s kW]" <energy> { http="<[emeter:100:JSONPATH($.payload0XEB85[0][1][1])]" }
-Number Total_Reactive_Power_Out "Total reactive power export: [JS(divideBy1000.js):%s kvar]" <energy> { http="<[emeter:100:JSONPATH($.payload0XEB85[0][4][1])]" }
+Number P1_Current "P1 Current: [JS(divideBy10.js):%s A]" <energy> { http="<[emeter:100:JSONPATH($.payload.01001F0700FF[0])]" }
+Number P2_Current "P2 Current: [JS(divideBy10.js):%s A]" <energy> { http="<[emeter:100:JSONPATH($.payload.0100330700FF[0])]" }
+Number P3_Current "P3 Current: [JS(divideBy10.js):%s A]" <energy> { http="<[emeter:100:JSONPATH($.payload.0100470700FF[0])]" }
 ```
+You may add other entities to the same file using the same pattern.
 
 You also need to create the javascript file ```transform/divideBy1000.js``` if you need to convert the value from W to kW for example:
 ```javascript
