@@ -15,7 +15,6 @@ HanReader::HanReader(Stream *hanPort)
 void HanReader::saveData()
 {
 	File dataFile;
-	bool validData = true;
 	jsonData.clear();
 	jsonData["elapsedtime"] = millis();
 	jsonData["rssi"] = WiFi.RSSI();
@@ -25,8 +24,7 @@ void HanReader::saveData()
 	if (bytesRead > 0)
 	{
 		reader.setJson(&jsonData);
-		validData = reader.ParseData(buffer, bytesRead);
-		if (!validData)
+		if (!reader.ParseData(buffer, bytesRead))
 		{
 			dataFile = LittleFS.open("/log.txt", "w");
 			dataFile.print("--- Start ---");
@@ -40,12 +38,9 @@ void HanReader::saveData()
 			dataFile.close();
 		}
 	}
-	if (validData)
-	{
-		dataFile = LittleFS.open("/data.json", "w");
-		serializeJson(jsonData, dataFile);
-		dataFile.close();
-	}
+	dataFile = LittleFS.open("/data.json", "w");
+	serializeJson(jsonData, dataFile);
+	dataFile.close();
 	bytesRead = 0;
 }
 

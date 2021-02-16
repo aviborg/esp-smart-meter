@@ -37,10 +37,13 @@ class DlmsReader
     bool ParseAXDR(uint8_t *buffer, uint32_t length);
     bool ParseASCII(uint8_t *buffer, uint32_t length);
     void Clear();
-    bool GetPayloadAXDR(JsonArray &jsonArray, uint32_t &position, uint8_t *buffer);
+    
+    bool GetPayloadAXDR(JsonObject &jsonData, uint32_t &position, uint8_t *buffer);
+    bool GetPayloadAXDR(JsonArray &jsonData, uint32_t &position, uint8_t *buffer);
     uint32_t GetAddress(uint32_t &position, uint8_t* buffer);
     template<typename T> T GetData(uint32_t &position, uint8_t *buffer);
     String GetOctetString(uint32_t &position, uint8_t *buffer, uint32_t len);
+    String GetVisibleString(uint32_t &position, uint8_t *buffer, uint32_t len);
     const char *GetEnum(uint32_t &position, uint8_t *buffer);
     uint32_t GetFrameFormatLength(uint32_t &position, uint8_t* buffer);
     uint16_t  GetChecksum(uint32_t checksumPosition, uint8_t *buffer);

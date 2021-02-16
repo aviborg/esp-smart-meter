@@ -54,108 +54,138 @@ bool DlmsReader::ParseAXDR(uint8_t *buffer, uint32_t length)
 
     uint32_t position = 1; // Already checked position 0
     uint32_t startPos = 0;
-    char tempStr[33] = {0};
+    char tempStr[60] = {0};
     uint32_t tempData;
-    JsonObject jsonHeader = jsonData->createNestedObject("header");
-    JsonObject jsonAPDU = jsonData->createNestedObject("apdu");
-    JsonArray jsonPayload;
+    JsonObject jsonObject;
+    // JsonObject jsonObject = jsonData->createNestedObject("apdu");
+    // JsonObject jsonPayload;
     // Check for a second start flag and then just skip
     if (buffer[position] == DLMS_READER_AXDR_STARTSTOP_FLAG)
         ++position;
     startPos = position; // Save start position needed for CRC later
-    jsonHeader["frameformat"] = GetFrameFormatLength(position, buffer);
-    jsonHeader["segmentation"] = segmentation;
-    jsonHeader["datalength"] = dataLength;
-    if (dataLength > length || dataLength > DLMS_READER_BUFFER_SIZE)
+    jsonObject = jsonData->createNestedObject("header");
+    jsonObject["encoding"] = "A-XDR";
+    jsonObject["frameformat"] = GetFrameFormatLength(position, buffer);
+    jsonObject["segmentation"] = segmentation;
+    jsonObject["datalength"] = dataLength;
+    if (dataLength > length || dataLength > DLMS_READER_BUFFER_SIZE) {
+        sprintf(tempStr, "Received length %d not equal to message length %d", length, dataLength);
+        (*jsonData)["lengtherror"] = tempStr;
         return false;
-    jsonHeader["client"] = GetAddress(position, buffer); // Get client address
-    jsonHeader["server"] = GetAddress(position, buffer); // Get server address
-    jsonHeader["control"] = buffer[position++];          // Get Control field assuming one uint8_t only
+    }
+    jsonObject["client"] = GetAddress(position, buffer); // Get client address
+    jsonObject["server"] = GetAddress(position, buffer); // Get server address
+    jsonObject["control"] = buffer[position++];          // Get Control field assuming one uint8_t only
     // Check header CRC
     tempData = GetChecksum(position, buffer);
-    if (Crc16.ComputeChecksum(buffer, startPos, position - startPos, 0, 0xffff, 0xffff) != tempData)
+    if (Crc16.ComputeChecksum(buffer, startPos, position - startPos, 0, 0xffff, 0xffff) != tempData) {
+        sprintf(tempStr, "Calculated CRC %04x not equal to message CRC %04x", Crc16.ComputeChecksum(buffer, startPos, position - startPos, 0, 0xffff, 0xffff), tempData);
+        (*jsonData)["crcerror"] = tempStr;
         return false;
-    sprintf(tempStr, "%#06X", tempData);
-    jsonHeader["hcs"] = tempStr;
-    sprintf(tempStr, "payload%#04X", tempData);
-    jsonPayload = jsonData->createNestedArray(tempStr); // Create unique payload string
+    }
+    sprintf(tempStr, "%04x", tempData);
+    jsonObject["hcs"] = tempStr;
     position += 2;
     // Check frame CRC
     tempData = GetChecksum(dataLength + startPos - 2, buffer);
-    if (Crc16.ComputeChecksum(buffer, startPos, dataLength - startPos - 1, 0, 0xffff, 0xffff) != tempData)
+    if (Crc16.ComputeChecksum(buffer, startPos, dataLength - startPos - 1, 0, 0xffff, 0xffff) != tempData) {
+                sprintf(tempStr, "Calculated CRC %04x not equal to message CRC %04x", Crc16.ComputeChecksum(buffer, startPos, dataLength - startPos - 1, 0, 0xffff, 0xffff), tempData);
+        (*jsonData)["crcerror"] = tempStr;
         return false;
-    sprintf(tempStr, "%#06X", tempData);
-    jsonHeader["fcs"] = tempStr;
+    }
+    sprintf(tempStr, "%04x", tempData);
+    jsonObject["fcs"] = tempStr;
     // LLC
     tempData = 0;
     for (startPos = position; position < startPos + 3; ++position)
         tempData = tempData << 8 | buffer[position];
-    sprintf(tempStr, "%#08X", tempData);
-    jsonHeader["llc"] = tempStr;
+    sprintf(tempStr, "%06x", tempData);
+    jsonObject["llc"] = tempStr;
     //  Data (APDU)
-    jsonAPDU["tag"] = buffer[position++];
+    jsonObject = jsonData->createNestedObject("apdu");
+    jsonObject["tag"] = buffer[position++];
     tempData = 0;
     for (startPos = position; position < startPos + 4; ++position)
         tempData = tempData << 8 | buffer[position];
-    sprintf(tempStr, "%#010X", tempData);
-    jsonAPDU["liiap"] = tempStr;
+    sprintf(tempStr, "%08x", tempData);
+    jsonObject["liiap"] = tempStr;
     // Date-Time, only length 0 and 0x0C is accepted
     tempData = 12;
     while ((buffer[position] != 0) && (buffer[position] != 0x0C) && --tempData)
         ++position;
-    jsonAPDU["datetime"] = GetOctetString(position, buffer, buffer[position] + 1);
+    jsonObject["datetime"] = GetOctetString(position, buffer, buffer[position] + 1);
 
     // Payload
-    return GetPayloadAXDR(jsonPayload, position, buffer);
+    jsonObject = jsonData->createNestedObject("payload"); // Create unique payload string
+    return GetPayloadAXDR(jsonObject, position, buffer);
 }
 
 bool DlmsReader::ParseASCII(uint8_t *buffer, uint32_t length)
 {
-    char payload[DLMS_READER_BUFFER_SIZE];
+    uint32_t index;
     char row[256];
+    const char replaceC[] = "\\";
+    const char rowSep[] = "\r\n";
+    const char eleSep[] = "()*";
     char *token, *element, *save_ptr;
-    uint16_t crc;
-    JsonArray jsonPayload;
-
-    // Divide the message into payload and CRC and calculate CRC
-    strcpy(payload, reinterpret_cast<char *>(buffer));
+    uint16_t crcCalc, crcMess;
+    JsonObject jsonObject;
+    // JsonObject jsonObject;
+    JsonArray jsonArray;
+    char *payload = reinterpret_cast<char *>(buffer);
 
     // Find end of message and compute checksum
-    token = strtok(payload, "!");
-    if (strlen(token) + 5 > length) // Make sure length
+    index = strcspn(payload, "!");
+    if (index >= length)
+    {
+        (*jsonData)["indexerror"] = "No ! was found in message";
         return false;
-    crc = Crc16.ComputeChecksum(buffer, 0, strlen(token) + 1, 1, 0, 0);
-    token = strtok(NULL, "!");
-    if (strtol(token, NULL, 16) != crc)
-        return false; //Failed CRC
+    }
+    crcCalc = Crc16.ComputeChecksum(buffer, 0, index + 1, 1, 0, 0);
+    crcMess = static_cast<uint16_t>(strtol(payload + index + 1, NULL, 16));
+    if (crcMess != crcCalc)
+    {
+        sprintf(row, "Calculated CRC: %04X not equal to message CRC: %04X", crcCalc, crcMess);
+        (*jsonData)["crcerror"] = row;
+        return false;
+    }
+
+    // Replace escape characters and other
+    for (element = strpbrk(payload, replaceC); element != NULL; element = strpbrk(element + 1, replaceC))
+        *element = '_';
 
     // Get each row and parse
-    token = strtok_r(payload, "\r\n/", &save_ptr);
-    (*jsonData)["header"] = token;
-    jsonPayload = jsonData->createNestedArray("payload");
+    payload = payload + 1;                        // Skip leading /
+    strtok(payload, "!");                         // Replaces ! to NULL
+    token = strtok_r(payload, rowSep, &save_ptr); // token will now hold first row
+    jsonObject = jsonData->createNestedObject("header");
+    jsonObject["id"] = token; // Get meter id
+    jsonObject["encoding"] = "ASCII";
+    sprintf(row, "%04X", crcCalc);
+    jsonObject["crc"] = row;
+    jsonObject = jsonData->createNestedObject("payload");
+    jsonObject = jsonObject.createNestedObject(token);
+    token = strtok_r(NULL, rowSep, &save_ptr);
     while (token != NULL)
     {
         strcpy(row, token);
-        JsonArray array = jsonPayload.createNestedArray();
-        element = strtok(row, "()*");
-        while (element != NULL)
+        element = strtok(row, eleSep);
+        JsonArray array = jsonObject.createNestedArray(element); // First element is the OBIS code
+        // Get data elements
+        for (element = strtok(NULL, eleSep); element != NULL; element = strtok(NULL, eleSep))
         {
             if (strpbrk(element, "-:kWhkvarhVAms") == NULL)
-            {
                 array.add(atof(element));
-            }
             else
-            {
                 array.add(element);
-            }
-            element = strtok(NULL, "()*");
         }
-        token = strtok_r(NULL, "\r\n/", &save_ptr);
+        token = strtok_r(NULL, rowSep, &save_ptr);
     }
     return true;
 }
 
-bool DlmsReader::GetPayloadAXDR(JsonArray &jsonData, uint32_t &position, uint8_t *buffer)
+// template <typename T>
+bool DlmsReader::GetPayloadAXDR(JsonObject &jsonObject, uint32_t &position, uint8_t *buffer)
 {
     // See IEC 62056-6-2 Table 2 for definitions
     uint32_t n = 0;
@@ -168,35 +198,92 @@ bool DlmsReader::GetPayloadAXDR(JsonArray &jsonData, uint32_t &position, uint8_t
         // Fall through to next
     case 2: // structure
     {
-        JsonArray array = jsonData.createNestedArray();
+        JsonObject nestedObject;
+        JsonArray nestedArray;
+        n = buffer[position + 1];  // Peek next and get type
+        if ( n == 1 || n == 2 || n == 19)
+            for (n = buffer[position++]; n; --n) {
+                if (!GetPayloadAXDR(jsonObject, position, buffer))
+                    return false;
+            }
+        else
+        {
+            if (n == 10)
+            {
+                n = buffer[position++] - 1; // length minus first object
+                position += 2;
+                nestedArray = jsonObject.createNestedArray(GetVisibleString(position, buffer, buffer[position - 1]));
+            }
+            else if (n == 9)
+            {
+                n = buffer[position++] - 1; // length minus first object
+                position += 2;
+                nestedArray = jsonObject.createNestedArray(GetOctetString(position, buffer, buffer[position - 1]));
+            }
+            else 
+            {
+                n = buffer[position++];
+                nestedArray = jsonObject.createNestedArray("data");
+            }
+            for (; n; --n)
+                if (!GetPayloadAXDR(nestedArray, position, buffer))
+                    return false;
+        }
+        break;
+    }
+    case 19: // compact-array
+        // TODO
+        return false;
+        break;
+    default:
+        // Something went wrong
+        return false;
+        break;
+    }
+    return true;
+}
+
+bool DlmsReader::GetPayloadAXDR(JsonArray &jsonArray, uint32_t &position, uint8_t *buffer)
+{
+    // See IEC 62056-6-2 Table 2 for definitions
+    uint32_t n = 0;
+    JsonArray nestedJson;
+    switch (buffer[position++])
+    {
+    case 0: // null-data
+        // Do nothing?
+        break;
+    case 1: // array
+        // Fall through to next
+    case 2: // structure
+        nestedJson = jsonArray.createNestedArray();
         for (n = buffer[position++]; n; --n)
         {
-            if (!GetPayloadAXDR(array, position, buffer))
+            if (!GetPayloadAXDR(nestedJson, position, buffer))
             {
                 return false;
             }
         }
         break;
-    }
     case 3: // boolean
-        jsonData.add(GetData<bool>(position, buffer));
+        jsonArray.add(GetData<bool>(position, buffer));
         break;
     case 4: // bit-string
-        jsonData.add(GetData<uint8_t>(position, buffer));
+        jsonArray.add(GetData<uint8_t>(position, buffer));
         break;
     case 5: // int32
-        jsonData.add(GetData<int32_t>(position, buffer));
+        jsonArray.add(GetData<int32_t>(position, buffer));
         break;
     case 6: // uint32
-        jsonData.add(GetData<uint32_t>(position, buffer));
+        jsonArray.add(GetData<uint32_t>(position, buffer));
         break;
     case 9: // octet-string
         n = buffer[position++];
-        jsonData.add(GetOctetString(position, buffer, n));
+        jsonArray.add(GetOctetString(position, buffer, n));
         break;
     case 10: // visible-string
         n = buffer[position++];
-        jsonData.add(GetOctetString(position, buffer, n));
+        jsonArray.add(GetVisibleString(position, buffer, n));
         break;
     case 12: // utf8-String
         // TODO
@@ -204,50 +291,50 @@ bool DlmsReader::GetPayloadAXDR(JsonArray &jsonData, uint32_t &position, uint8_t
         break;
     case 13: // bcd int8
         // TODO, this is not correct
-        jsonData.add(GetData<int8_t>(position, buffer));
+        jsonArray.add(GetData<int8_t>(position, buffer));
         break;
     case 15: // int8
-        jsonData.add(GetData<int8_t>(position, buffer));
+        jsonArray.add(GetData<int8_t>(position, buffer));
         break;
     case 16: // int16
-        jsonData.add(GetData<int16_t>(position, buffer));
+        jsonArray.add(GetData<int16_t>(position, buffer));
         break;
     case 17: // uint8
-        jsonData.add(GetData<uint8_t>(position, buffer));
+        jsonArray.add(GetData<uint8_t>(position, buffer));
         break;
     case 18: // uint16
-        jsonData.add(GetData<uint16_t>(position, buffer));
+        jsonArray.add(GetData<uint16_t>(position, buffer));
         break;
     case 19: // compact-array
         // TODO
         return false;
         break;
     case 20: // int64
-        jsonData.add(GetData<int64_t>(position, buffer));
+        jsonArray.add(GetData<int64_t>(position, buffer));
         break;
     case 21: // uint64
-        jsonData.add(GetData<uint64_t>(position, buffer));
+        jsonArray.add(GetData<uint64_t>(position, buffer));
         break;
     case 22: // enum8, see table 4
-        jsonData.add(GetEnum(position, buffer));
+        jsonArray.add(GetEnum(position, buffer));
         break;
     case 23: // float32
-        jsonData.add(GetData<float>(position, buffer));
+        jsonArray.add(GetData<float>(position, buffer));
         break;
     case 24: // float64
-        jsonData.add(GetData<double>(position, buffer));
+        jsonArray.add(GetData<double>(position, buffer));
         break;
     case 25: // date-time, octet-string12
         n = 12;
-        jsonData.add(GetOctetString(position, buffer, n));
+        jsonArray.add(GetOctetString(position, buffer, n));
         break;
     case 26: // date, octet-string5
         n = 5;
-        jsonData.add(GetOctetString(position, buffer, n));
+        jsonArray.add(GetOctetString(position, buffer, n));
         break;
     case 27: // time, octet-string4
         n = 4;
-        jsonData.add(GetOctetString(position, buffer, n));
+        jsonArray.add(GetOctetString(position, buffer, n));
         break;
     default:
         // Something went wrong
@@ -289,6 +376,18 @@ String DlmsReader::GetOctetString(uint32_t &position, uint8_t *buffer, uint32_t 
     for (uint32_t n = len; n; --n)
     {
         snprintf(tempStr, 4, "%02X", buffer[position++]);
+        dataStr += tempStr;
+    }
+    return dataStr;
+}
+
+String DlmsReader::GetVisibleString(uint32_t &position, uint8_t *buffer, uint32_t len)
+{
+    String dataStr = "";
+    char tempStr[2] = {0};
+    for (uint32_t n = len; n; --n)
+    {
+        snprintf(tempStr, 2, "%c", buffer[position++]);
         dataStr += tempStr;
     }
     return dataStr;

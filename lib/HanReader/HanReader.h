@@ -16,7 +16,7 @@ private:
 	Stream *han;
 	
 	uint8_t buffer[DLMS_READER_BUFFER_SIZE] = {0};
-	StaticJsonDocument<DLMS_READER_BUFFER_SIZE*2> jsonData;
+	StaticJsonDocument<DLMS_READER_BUFFER_SIZE*4> jsonData;
 	uint32_t bytesRead = 0;
 	DlmsReader reader;
 

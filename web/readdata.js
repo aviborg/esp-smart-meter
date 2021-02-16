@@ -24,7 +24,7 @@ function parseJSONData(meterObject) {
     let text = "";
     for (x in meterObject) {
         if (typeof(meterObject[x]) == "object") {
-            text += "<div class='flex-container'>" + x + ": " + parseJSONData(meterObject[x]) + "</div>";
+            text += "<div class='flex-container'>" + x + parseJSONData(meterObject[x]) + "</div>";
         } else {
             text += "<div class='data-field'>" + x + ": " + meterObject[x] + "</div>";
         }
