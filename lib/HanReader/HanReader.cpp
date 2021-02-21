@@ -27,7 +27,7 @@ void HanReader::saveData()
 		if (!reader.ParseData(buffer, bytesRead))
 		{
 			dataFile = LittleFS.open("/log.txt", "w");
-			dataFile.print("--- Start ---");
+			dataFile.printf("--- Start %lu ---", millis());
 			for (uint n = 0; n < bytesRead; ++n)
 			{
 				if ((n % 16) == 0)

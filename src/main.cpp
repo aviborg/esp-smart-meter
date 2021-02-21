@@ -35,6 +35,9 @@ void setup() {
   webServer.setup();
   ArduinoOTA.begin();
   hanReader.saveData();
+
+  // Flush serial buffer
+  while(Serial.available()>0) Serial.read(); 
 }
 
 void loop()
