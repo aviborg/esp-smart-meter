@@ -76,7 +76,7 @@ The pins are as this:
 5. Data, open collector
 6. Data ground
 
-Pin 5 being an open collector means that a logical 1 will be equal to connection to ground, whereas a logical 0 will be floating. Another complication to this is that the ESP8266 only works with max 3.3 V on its RX-input. The NodeMCU has a voltage regulator so you can power it with the 5 V pin. But if you use a bare ESP-chip you need a voltage regulator to step down the power to 3.3 V. In order to invert and step down the data signal you need a NPN-transistor, 2 resistors and a capacitance. The capacitance is optional, but it is good practice to have one on the power supply input to reduce current spikes when the ESP is transmitting.
+Pin 5 being an open collector means that a logical 1 will be equal to connection to ground, whereas a logical 0 will be floating. Another complication to this is that the ESP8266 only works with max 3.3 V on its RX-input. The NodeMCU has a voltage regulator so you can power it with the 5 V pin. But if you use a bare ESP-chip you need a voltage regulator to step down the power to 3.3 V. In order to invert and step down the data signal you need a NPN-transistor, 2 resistors and a capacitor. The capacitor is optional, but it is good practice to have one on the power supply input to reduce current spikes when the ESP is transmitting.
 Below is a schematic and an example the setup.
 ![Schematic](img/nodemcuschematic_bb.png "Schematic")
 ![Schematic](img/nodemcuwiring_bb.png "Schematic")
