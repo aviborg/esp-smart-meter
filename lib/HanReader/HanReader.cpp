@@ -21,6 +21,7 @@ void HanReader::saveData()
 	jsonData["mac"] = WiFi.macAddress();
 	jsonData["localip"] = WiFi.localIP().toString();
 	jsonData["ssid"] = WiFi.SSID();
+	jsonData["hostname"] = WiFi.hostname();
 	if (bytesRead > 0)
 	{
 		reader.setJson(&jsonData);
