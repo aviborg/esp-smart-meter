@@ -60,6 +60,7 @@ void wifiSetup()
 
     wifiManager.addParameter(&htmlParam);
     wifiManager.addParameter(&hostNameParam);
+    wifiManager.setTimeout(600U);
     WiFi.hostname(hostName);
     if (!wifiManager.autoConnect())
     {
