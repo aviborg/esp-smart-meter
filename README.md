@@ -165,11 +165,13 @@ Save the file and restart your Home assistant server. You should now be able to 
 
 #### <a name='openHAB'></a>openHAB
 
-To get this working with OpenHAB you need some add-ons. This was tested with 2.4.0, although version 3.0.0 is available, the method should be the same. How add-ons are added is described here: https://www.openhab.org/docs/configuration/addons.html
+To get this working with OpenHAB you need some add-ons. How add-ons are added is described here: https://www.openhab.org/docs/configuration/addons.html
 The following add-on are required:
 - HTTP Binding
 - JSONPath Transformation
 - Javascript Transformation (optional, only needed for conversion of values, division etc)
+
+##### openHAB 2
 
 The default location for configuration files are ```/etc/openhab2``` if you use the openhabian distribution for Raspberry Pi.
 
@@ -212,6 +214,51 @@ You also need to create the javascript file ```transform/divideBy1000.js``` if y
 Voila, the changes should take effect immediately. Here is data from openhab visualized in Grafana (data is stored and fetched from an influxdatabase):
 
 ![openHAB](img/Screenshot_20210113-213416.png "openHAB")
+
+##### openHAB 3
+To configure openHAB 3 just create a HTTP thing in the web interface. Then open the Code tab and paste this into the editor:
+```yaml
+UID: http:url:emeter
+label: HTTP Electricity Thing
+thingTypeUID: http:url
+configuration:
+  authMode: BASIC
+  ignoreSSLErrors: false
+  baseURL: http://emeter/data.json
+  delay: 0
+  stateMethod: GET
+  refresh: 10
+  commandMethod: GET
+  timeout: 3000
+  bufferSize: 2048
+channels:
+  - id: P1_Current
+    channelTypeUID: http:number
+    label: P1 Current
+    description: ""
+    configuration:
+      mode: READONLY
+      stateTransformation: JSONPATH:$.payload.01001F0700FF[0]
+      unit: A
+  - id: P2_Current
+    channelTypeUID: http:number
+    label: P2 Current
+    description: ""
+    configuration:
+      mode: READONLY
+      stateTransformation: JSONPATH:$.payload.0100330700FF[0]
+      unit: A
+  - id: P3_Current
+    channelTypeUID: http:number
+    label: P3 Current
+    description: null
+    configuration:
+      mode: READONLY
+      stateTransformation: JSONPATH:$.payload.0100470700FF[0]
+      unit: A
+```
+
+Then add an item to each channel. If you want a division of 10 for example you may add the filename ```divideBy10.js``` to the Profile configuration on the item configuration page. The require that you have placed this file in the conf/transform.
 
 ## <a name='Ifanythinggoeswrong'></a>If anything goes wrong
 
