@@ -335,7 +335,7 @@ channels:
     configuration:
       mode: READONLY
       stateTransformation: JSONPATH:$.payload.0100170700FF[0]
-      unit: kVAr
+      unit: kvar
   - id: P2_Reactive_Power_In
     channelTypeUID: http:number
     label: P2 reactive power import
@@ -343,7 +343,7 @@ channels:
     configuration:
       mode: READONLY
       stateTransformation: JSONPATH:$.payload.01002B0700FF[0]
-      unit: kVAr
+      unit: kvar
   - id: P3_Reactive_Power_In
     channelTypeUID: http:number
     label: P3 reactive power import
@@ -351,7 +351,7 @@ channels:
     configuration:
       mode: READONLY
       stateTransformation: JSONPATH:$.payload.01003F0700FF[0]
-      unit: kVAr
+      unit: kvar
   - id: P1_Reactive_Power_Out
     channelTypeUID: http:number
     label: P1 reactive power export
@@ -359,7 +359,7 @@ channels:
     configuration:
       mode: READONLY
       stateTransformation: JSONPATH:$.payload.0100180700FF[0]
-      unit: kVAr
+      unit: kvar
   - id: P2_Reactive_Power_Out
     channelTypeUID: http:number
     label: P2 reactive power export
@@ -367,7 +367,7 @@ channels:
     configuration:
       mode: READONLY
       stateTransformation: JSONPATH:$.payload.01002C0700FF[0]
-      unit: kVAr
+      unit: kvar
   - id: P3_Reactive_Power_Out
     channelTypeUID: http:number
     label: P3 reactive power export
@@ -375,7 +375,7 @@ channels:
     configuration:
       mode: READONLY
       stateTransformation: JSONPATH:$.payload.0100400700FF[0]
-      unit: kVAr
+      unit: kvar
   - id: Total_Active_Power_In
     channelTypeUID: http:number
     label: Total active power import
@@ -399,7 +399,7 @@ channels:
     configuration:
       mode: READONLY
       stateTransformation: JSONPATH:$.payload.0100030700FF[0]
-      unit: kVAr
+      unit: kvar
   - id: Total_Reactive_Power_Out
     channelTypeUID: http:number
     label: Total reactive power export
@@ -407,7 +407,7 @@ channels:
     configuration:
       mode: READONLY
       stateTransformation: JSONPATH:$.payload.0100040700FF[0]
-      unit: kVAr
+      unit: kvar
   - id: Total_Active_Energy_In
     channelTypeUID: http:number
     label: Total active energy import
@@ -431,7 +431,7 @@ channels:
     configuration:
       mode: READONLY
       stateTransformation: JSONPATH:$.payload.0100030800FF[0]
-      unit: kVArh
+      unit: kvarh
   - id: Total_Reactive_Energy_Out
     channelTypeUID: http:number
     label: Total reactive energy export
@@ -439,14 +439,14 @@ channels:
     configuration:
       mode: READONLY
       stateTransformation: JSONPATH:$.payload.0100040800FF[0]
-      unit: kVArh
+      unit: kvarh
   - id: Emeter_RSSI
     channelTypeUID: http:number
     label: Electricty meter RSSI
     description: null
     configuration:
       mode: READONLY
-      stateTransformation: JSONPATH:$.payload.0100040800FF[0]rssi
+      stateTransformation: JSONPATH:$.rssi
       unit: dB
 ```
 
