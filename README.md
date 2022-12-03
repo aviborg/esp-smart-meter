@@ -218,8 +218,8 @@ Voila, the changes should take effect immediately. Here is data from openhab vis
 ##### openHAB 3
 To configure openHAB 3 just create a HTTP thing in the web interface. Then open the Code tab and paste this into the editor:
 ```yaml
-UID: http:url:emeter
-label: HTTP Electricity Thing
+UID: http:url:electricitymeter
+label: Electricity
 thingTypeUID: http:url
 configuration:
   authMode: BASIC
@@ -235,7 +235,7 @@ channels:
   - id: P1_Current
     channelTypeUID: http:number
     label: P1 Current
-    description: ""
+    description: null
     configuration:
       mode: READONLY
       stateTransformation: JSONPATH:$.payload.01001F0700FF[0]
@@ -243,7 +243,7 @@ channels:
   - id: P2_Current
     channelTypeUID: http:number
     label: P2 Current
-    description: ""
+    description: null
     configuration:
       mode: READONLY
       stateTransformation: JSONPATH:$.payload.0100330700FF[0]
@@ -256,6 +256,198 @@ channels:
       mode: READONLY
       stateTransformation: JSONPATH:$.payload.0100470700FF[0]
       unit: A
+  - id: P1_Voltage
+    channelTypeUID: http:number
+    label: P1 Voltage
+    description: null
+    configuration:
+      mode: READONLY
+      stateTransformation: JSONPATH:$.payload.0100200700FF[0]
+      unit: V
+  - id: P2_Voltage
+    channelTypeUID: http:number
+    label: P2 Voltage
+    description: null
+    configuration:
+      mode: READONLY
+      stateTransformation: JSONPATH:$.payload.0100340700FF[0]
+      unit: V
+  - id: P3_Voltage
+    channelTypeUID: http:number
+    label: P3 Voltage
+    description: null
+    configuration:
+      mode: READONLY
+      stateTransformation: JSONPATH:$.payload.0100480700FF[0]
+      unit: V
+  - id: P1_Active_Power_In
+    channelTypeUID: http:number
+    label: P1 active power import
+    description: null
+    configuration:
+      mode: READONLY
+      stateTransformation: JSONPATH:$.payload.0100150700FF[0]
+      unit: kW
+  - id: P2_Active_Power_In
+    channelTypeUID: http:number
+    label: P2 active power import
+    description: null
+    configuration:
+      mode: READONLY
+      stateTransformation: JSONPATH:$.payload.0100290700FF[0]
+      unit: kW
+  - id: P3_Active_Power_In
+    channelTypeUID: http:number
+    label: P3 active power import
+    description: null
+    configuration:
+      mode: READONLY
+      stateTransformation: JSONPATH:$.payload.01003D0700FF[0]
+      unit: kW
+  - id: P1_Active_Power_Out
+    channelTypeUID: http:number
+    label: P1 active power export
+    description: null
+    configuration:
+      mode: READONLY
+      stateTransformation: JSONPATH:$.payload.0100160700FF[0]
+      unit: kW
+  - id: P2_Active_Power_Out
+    channelTypeUID: http:number
+    label: P2 active power export
+    description: null
+    configuration:
+      mode: READONLY
+      stateTransformation: JSONPATH:$.payload.01002A0700FF[0]
+      unit: kW
+  - id: P3_Active_Power_Out
+    channelTypeUID: http:number
+    label: P3 active power export
+    description: null
+    configuration:
+      mode: READONLY
+      stateTransformation: JSONPATH:$.payload.01003E0700FF[0]
+      unit: kW
+  - id: P1_Reactive_Power_In
+    channelTypeUID: http:number
+    label: P1 reactive power import
+    description: null
+    configuration:
+      mode: READONLY
+      stateTransformation: JSONPATH:$.payload.0100170700FF[0]
+      unit: kVAr
+  - id: P2_Reactive_Power_In
+    channelTypeUID: http:number
+    label: P2 reactive power import
+    description: null
+    configuration:
+      mode: READONLY
+      stateTransformation: JSONPATH:$.payload.01002B0700FF[0]
+      unit: kVAr
+  - id: P3_Reactive_Power_In
+    channelTypeUID: http:number
+    label: P3 reactive power import
+    description: null
+    configuration:
+      mode: READONLY
+      stateTransformation: JSONPATH:$.payload.01003F0700FF[0]
+      unit: kVAr
+  - id: P1_Reactive_Power_Out
+    channelTypeUID: http:number
+    label: P1 reactive power export
+    description: null
+    configuration:
+      mode: READONLY
+      stateTransformation: JSONPATH:$.payload.0100180700FF[0]
+      unit: kVAr
+  - id: P2_Reactive_Power_Out
+    channelTypeUID: http:number
+    label: P2 reactive power export
+    description: null
+    configuration:
+      mode: READONLY
+      stateTransformation: JSONPATH:$.payload.01002C0700FF[0]
+      unit: kVAr
+  - id: P3_Reactive_Power_Out
+    channelTypeUID: http:number
+    label: P3 reactive power export
+    description: null
+    configuration:
+      mode: READONLY
+      stateTransformation: JSONPATH:$.payload.0100400700FF[0]
+      unit: kVAr
+  - id: Total_Active_Power_In
+    channelTypeUID: http:number
+    label: Total active power import
+    description: null
+    configuration:
+      mode: READONLY
+      stateTransformation: JSONPATH:$.payload.0100010700FF[0]
+      unit: kW
+  - id: Total_Active_Power_Out
+    channelTypeUID: http:number
+    label: Total active power export
+    description: null
+    configuration:
+      mode: READONLY
+      stateTransformation: JSONPATH:$.payload.0100020700FF[0]
+      unit: kW
+  - id: Total_Reactive_Power_In
+    channelTypeUID: http:number
+    label: Total reactive power import
+    description: null
+    configuration:
+      mode: READONLY
+      stateTransformation: JSONPATH:$.payload.0100030700FF[0]
+      unit: kVAr
+  - id: Total_Reactive_Power_Out
+    channelTypeUID: http:number
+    label: Total reactive power export
+    description: null
+    configuration:
+      mode: READONLY
+      stateTransformation: JSONPATH:$.payload.0100040700FF[0]
+      unit: kVAr
+  - id: Total_Active_Energy_In
+    channelTypeUID: http:number
+    label: Total active energy import
+    description: null
+    configuration:
+      mode: READONLY
+      stateTransformation: JSONPATH:$.payload.0100010800FF[0]
+      unit: kWh
+  - id: Total_Active_Energy_Out
+    channelTypeUID: http:number
+    label: Total active energy export
+    description: null
+    configuration:
+      mode: READONLY
+      stateTransformation: JSONPATH:$.payload.0100020800FF[0]
+      unit: kWh
+  - id: Total_Reactive_Energy_In
+    channelTypeUID: http:number
+    label: Total reactive energy import
+    description: null
+    configuration:
+      mode: READONLY
+      stateTransformation: JSONPATH:$.payload.0100030800FF[0]
+      unit: kVArh
+  - id: Total_Reactive_Energy_Out
+    channelTypeUID: http:number
+    label: Total reactive energy export
+    description: null
+    configuration:
+      mode: READONLY
+      stateTransformation: JSONPATH:$.payload.0100040800FF[0]
+      unit: kVArh
+  - id: Emeter_RSSI
+    channelTypeUID: http:number
+    label: Electricty meter RSSI
+    description: null
+    configuration:
+      mode: READONLY
+      stateTransformation: JSONPATH:$.payload.0100040800FF[0]rssi
+      unit: dB
 ```
 
 Then add an item to each channel. If you want a division of 10 for example you may add the filename ```divideBy10.js``` to the Profile configuration on the item configuration page. The require that you have placed this file in the conf/transform.
