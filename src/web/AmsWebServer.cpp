@@ -25,6 +25,10 @@ void AmsWebServer::loop() {
 	server.handleClient();
 }
 
+void AmsWebServer::setDataJson(String str){
+	dataJsonStr = str;
+}
+
 void AmsWebServer::indexHtml() {
 	String html = String((const __FlashStringHelper*) INDEX_HTML);
 	server.sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
@@ -49,15 +53,12 @@ void AmsWebServer::readdataJs() {
 }
 
 void AmsWebServer::dataJson() {
-	File dataFile = LittleFS.open("/data.json", "r");
-	String jsonStr = dataFile.readString();
 	server.sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
 	server.sendHeader("Access-Control-Allow-Origin", "*");
 	server.sendHeader("Pragma", "no-cache");
 	server.sendHeader("Expires", "-1");
-	server.setContentLength(jsonStr.length());
-	server.send(200, "application/json", jsonStr);
-	dataFile.close();
+	server.setContentLength(dataJsonStr.length());
+	server.send(200, "application/json", dataJsonStr);
 }
 
 void AmsWebServer::logTxt() {

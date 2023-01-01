@@ -450,6 +450,240 @@ channels:
       unit: dB
 ```
 
+For ASCII-encoded strings with whitespace the JSON-keys need to be quoted like this:
+```yaml
+UID: http:url:electricitymeter
+label: Electricity
+thingTypeUID: http:url
+configuration:
+  authMode: BASIC
+  ignoreSSLErrors: false
+  baseURL: http://emeter/data.json
+  delay: 0
+  stateMethod: GET
+  refresh: 10
+  commandMethod: GET
+  timeout: 3000
+  bufferSize: 2048
+channels:
+  - id: P1_Current
+    channelTypeUID: http:number
+    label: P1 Current
+    description: null
+    configuration:
+      mode: READONLY
+      stateTransformation: JSONPATH:$.["payload"].["ADN9 6534"].["1-0:31.7.0"].[0]
+      unit: A
+  - id: P2_Current
+    channelTypeUID: http:number
+    label: P2 Current
+    description: null
+    configuration:
+      mode: READONLY
+      stateTransformation: JSONPATH:$.["payload"].["ADN9 6534"].["1-0:51.7.0"].[0]
+      unit: A
+  - id: P3_Current
+    channelTypeUID: http:number
+    label: P3 Current
+    description: null
+    configuration:
+      mode: READONLY
+      stateTransformation: JSONPATH:$.["payload"].["ADN9 6534"].["1-0:71.7.0"].[0]
+      unit: A
+  - id: P1_Voltage
+    channelTypeUID: http:number
+    label: P1 Voltage
+    description: null
+    configuration:
+      mode: READONLY
+      stateTransformation: JSONPATH:$.["payload"].["ADN9 6534"].["1-0:32.7.0"][0]
+      unit: V
+  - id: P2_Voltage
+    channelTypeUID: http:number
+    label: P2 Voltage
+    description: null
+    configuration:
+      mode: READONLY
+      stateTransformation: JSONPATH:$.["payload"].["ADN9 6534"].["1-0:52.7.0"].[0]
+      unit: V
+  - id: P3_Voltage
+    channelTypeUID: http:number
+    label: P3 Voltage
+    description: null
+    configuration:
+      mode: READONLY
+      stateTransformation: JSONPATH:$.["payload"].["ADN9 6534"].["1-0:72.7.0"].[0]
+      unit: V
+  - id: P1_Active_Power_In
+    channelTypeUID: http:number
+    label: P1 active power import
+    description: null
+    configuration:
+      mode: READONLY
+      stateTransformation: JSONPATH:$.["payload"].["ADN9 6534"].["1-0:21.7.0"].[0]
+      unit: kW
+  - id: P2_Active_Power_In
+    channelTypeUID: http:number
+    label: P2 active power import
+    description: null
+    configuration:
+      mode: READONLY
+      stateTransformation: JSONPATH:$.["payload"].["ADN9 6534"].["1-0:41.7.0"].[0]
+      unit: kW
+  - id: P3_Active_Power_In
+    channelTypeUID: http:number
+    label: P3 active power import
+    description: null
+    configuration:
+      mode: READONLY
+      stateTransformation: JSONPATH:$.["payload"].["ADN9 6534"].["1-0:61.7.0"].[0]
+      unit: kW
+  - id: P1_Active_Power_Out
+    channelTypeUID: http:number
+    label: P1 active power export
+    description: null
+    configuration:
+      mode: READONLY
+      stateTransformation: JSONPATH:$.["payload"].["ADN9 6534"].["1-0:22.7.0"].[0]
+      unit: kW
+  - id: P2_Active_Power_Out
+    channelTypeUID: http:number
+    label: P2 active power export
+    description: null
+    configuration:
+      mode: READONLY
+      stateTransformation: JSONPATH:$.["payload"].["ADN9 6534"].["1-0:42.7.0"].[0]
+      unit: kW
+  - id: P3_Active_Power_Out
+    channelTypeUID: http:number
+    label: P3 active power export
+    description: null
+    configuration:
+      mode: READONLY
+      stateTransformation: JSONPATH:$.["payload"].["ADN9 6534"].["1-0:62.7.0"].[0]
+      unit: kW
+  - id: P1_Reactive_Power_In
+    channelTypeUID: http:number
+    label: P1 reactive power import
+    description: null
+    configuration:
+      mode: READONLY
+      stateTransformation: JSONPATH:$.["payload"].["ADN9 6534"].["1-0:23.7.0"].[0]
+      unit: kvar
+  - id: P2_Reactive_Power_In
+    channelTypeUID: http:number
+    label: P2 reactive power import
+    description: null
+    configuration:
+      mode: READONLY
+      stateTransformation: JSONPATH:$.["payload"].["ADN9 6534"].["1-0:43.7.0"].[0]
+      unit: kvar
+  - id: P3_Reactive_Power_In
+    channelTypeUID: http:number
+    label: P3 reactive power import
+    description: null
+    configuration:
+      mode: READONLY
+      stateTransformation: JSONPATH:$.["payload"].["ADN9 6534"].["1-0:63.7.0"].[0]
+      unit: kvar
+  - id: P1_Reactive_Power_Out
+    channelTypeUID: http:number
+    label: P1 reactive power export
+    description: null
+    configuration:
+      mode: READONLY
+      stateTransformation: JSONPATH:$.["payload"].["ADN9 6534"].["1-0:24.7.0"].[0]
+      unit: kvar
+  - id: P2_Reactive_Power_Out
+    channelTypeUID: http:number
+    label: P2 reactive power export
+    description: null
+    configuration:
+      mode: READONLY
+      stateTransformation: JSONPATH:$.["payload"].["ADN9 6534"].["1-0:44.7.0"].[0]
+      unit: kvar
+  - id: P3_Reactive_Power_Out
+    channelTypeUID: http:number
+    label: P3 reactive power export
+    description: null
+    configuration:
+      mode: READONLY
+      stateTransformation: JSONPATH:$.["payload"].["ADN9 6534"].["1-0:64.7.0"].[0]
+      unit: kvar
+  - id: Total_Active_Power_In
+    channelTypeUID: http:number
+    label: Total active power import
+    description: null
+    configuration:
+      mode: READONLY
+      stateTransformation: JSONPATH:$.["payload"].["ADN9 6534"].["1-0:1.7.0"].[0]
+      unit: kW
+  - id: Total_Active_Power_Out
+    channelTypeUID: http:number
+    label: Total active power export
+    description: null
+    configuration:
+      mode: READONLY
+      stateTransformation: JSONPATH:$.["payload"].["ADN9 6534"].["1-0:2.7.0"].[0]
+      unit: kW
+  - id: Total_Reactive_Power_In
+    channelTypeUID: http:number
+    label: Total reactive power import
+    description: null
+    configuration:
+      mode: READONLY
+      stateTransformation: JSONPATH:$.["payload"].["ADN9 6534"].["1-0:3.7.0"].[0]
+      unit: kvar
+  - id: Total_Reactive_Power_Out
+    channelTypeUID: http:number
+    label: Total reactive power export
+    description: null
+    configuration:
+      mode: READONLY
+      stateTransformation: JSONPATH:$.["payload"].["ADN9 6534"].["1-0:4.7.0"].[0]
+      unit: kvar
+  - id: Total_Active_Energy_In
+    channelTypeUID: http:number
+    label: Total active energy import
+    description: null
+    configuration:
+      mode: READONLY
+      stateTransformation: JSONPATH:$.["payload"].["ADN9 6534"].["1-0:1.8.0"].[0]
+      unit: kWh
+  - id: Total_Active_Energy_Out
+    channelTypeUID: http:number
+    label: Total active energy export
+    description: null
+    configuration:
+      mode: READONLY
+      stateTransformation: JSONPATH:$.["payload"].["ADN9 6534"].["1-0:2.8.0"].[0]
+      unit: kWh
+  - id: Total_Reactive_Energy_In
+    channelTypeUID: http:number
+    label: Total reactive energy import
+    description: null
+    configuration:
+      mode: READONLY
+      stateTransformation: JSONPATH:$.["payload"].["ADN9 6534"].["1-0:3.8.0"].[0]
+      unit: kvarh
+  - id: Total_Reactive_Energy_Out
+    channelTypeUID: http:number
+    label: Total reactive energy export
+    description: null
+    configuration:
+      mode: READONLY
+      stateTransformation: JSONPATH:$.["payload"].["ADN9 6534"].["1-0:4.8.0"].[0]
+      unit: kvarh
+  - id: Emeter_RSSI
+    channelTypeUID: http:number
+    label: Electricty meter RSSI
+    description: null
+    configuration:
+      mode: READONLY
+      stateTransformation: JSONPATH:$.rssi
+      unit: dB
+```
+
 Then add an item to each channel. If you want a division of 10 for example you may add the filename ```divideBy10.js``` to the Profile configuration on the item configuration page. The require that you have placed this file in the conf/transform.
 
 ## <a name='Ifanythinggoeswrong'></a>If anything goes wrong

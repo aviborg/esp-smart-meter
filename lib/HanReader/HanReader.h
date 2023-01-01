@@ -10,7 +10,7 @@ class HanReader
 {
 public:
 	HanReader(Stream *hanPort);
-	void saveData();
+	String parseData();
 	bool read();
 private:
 	Stream *han;

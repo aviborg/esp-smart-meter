@@ -11,8 +11,6 @@
 AmsWebServer webServer;
 HanReader hanReader(&Serial);
 
-
-
 void setup() {
   Serial.begin(115200);
 
@@ -27,14 +25,11 @@ void setup() {
     ESP.reset();
   }
 
-  LittleFS.remove("/log.txt");
-  LittleFS.remove("/data.json");
-
   // Setup wifi and webserver
   wifiSetup();
   webServer.setup();
   ArduinoOTA.begin();
-  hanReader.saveData();
+  webServer.setDataJson(hanReader.parseData());
 
   // Flush serial buffer
   while(Serial.available()>0) Serial.read(); 
@@ -50,41 +45,37 @@ void loop()
   // When a serial read is detected other stuff is delayed 13 ms
   // using a timeout not divisible by 1000 (even) and a prime number
   // reduce the risk of having the server working while data is received
-  if (hanReader.read())
-  {
+  if (hanReader.read()) {
     lastUpdate = now;
     dataReceived = true;
   }
-  else
-  {
-    if (now - lastUpdate > 13)
-    {
+  else {
+    if (now - lastUpdate > 13) {
       lastUpdate = now;
-      if (dataReceived)
-      {
-        hanReader.saveData();
+      if (dataReceived) {
+        digitalWrite(LED_BUILTIN, LOW); // Lit up LED
+        webServer.setDataJson(hanReader.parseData());
         dataReceived = false;
       }
-      else
-      {
-        switch (scheduleState++)
-        {
-        case 0:
-          resetChipOnTrigger();
-          break;
-        case 1:
-          MDNS.update();
-          break;
-        case 2:
-          webServer.loop();
-          break;
-        case 3:
-          ArduinoOTA.handle();
-          break;
-        default:
-          yield();
-          scheduleState = 0;
-          break;
+      else {
+        digitalWrite(LED_BUILTIN, HIGH); // Turn off LED
+        switch (scheduleState++) {
+          case 0:
+            resetChipOnTrigger();
+            break;
+          case 1:
+            MDNS.update();
+            break;
+          case 2:
+            webServer.loop();
+            break;
+          case 3:
+            ArduinoOTA.handle();
+            break;
+          default:
+            yield();
+            scheduleState = 0;
+            break;
         }
       }
     }

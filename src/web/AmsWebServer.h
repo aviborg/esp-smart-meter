@@ -11,6 +11,7 @@ public:
 	~AmsWebServer();
 	void setup();
 	void loop();
+	void setDataJson(String str);
 private:
 	ESP8266WebServer server;
 	void indexHtml();
@@ -18,6 +19,7 @@ private:
 	void readdataJs();
 	void dataJson();
 	void logTxt();
+	String dataJsonStr;
 };
 
 #endif

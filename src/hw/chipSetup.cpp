@@ -49,9 +49,9 @@ void wifiSetup()
 
     htmlString =  "<br/>When connected, the electricity meter will be available on the local network on address: <br/> <a href=\"http://";
     htmlString += hostName;
-    htmlString += "\">http://";
+    htmlString += "/\">http://";
     htmlString += hostName;
-    htmlString += "</a><br/>You may change the hostname to a custom name, (Only numbers and lowercase letters, no spaces). ";
+    htmlString += "/</a><br/>You may change the hostname to a custom name, (Only numbers and lowercase letters, no spaces). ";
     htmlString += "Note that the hostname may take a up to 60 minutes to get registered on your local network.";
     WiFiManagerParameter hostNameParam("hostName", hostName, hostName, HOSTNAME_MAXLENGTH);
     WiFiManagerParameter htmlParam(htmlString.c_str());
@@ -61,7 +61,6 @@ void wifiSetup()
     wifiManager.addParameter(&htmlParam);
     wifiManager.addParameter(&hostNameParam);
     wifiManager.setTimeout(600U);
-    WiFi.hostname(hostName);
     if (!wifiManager.autoConnect())
     {
         ESP.reset();
@@ -80,7 +79,7 @@ void wifiSetup()
     }
 
     ticker.detach();
-
+    WiFi.setHostname(hostName);
     MDNS.begin(hostName);
     MDNS.addService("http", "tcp", HTTP_PORT);
     digitalWrite(LED_BUILTIN, HIGH);
@@ -99,9 +98,10 @@ void resetChipOnTrigger()
             Dir dir = LittleFS.openDir("/");
             while (dir.next())
             {   // Only deletes files not folders?
-                // Serial.println(dir.fileName());
+                Serial.println(dir.fileName());
                 LittleFS.remove(dir.fileName());
             }
+            ESP.eraseConfig();
             digitalWrite(LED_BUILTIN, HIGH);
             while (digitalRead(TRIGGER_PIN) == LOW)
             { // Wait until button is released
