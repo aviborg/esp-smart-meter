@@ -7,29 +7,29 @@
 
 HanReader::HanReader(Stream *hanPort)
 {
-
 	han = hanPort;
 	bytesRead = 0;
 }
 
-void HanReader::saveData()
+String HanReader::parseData()
 {
-	File dataFile;
+	String dataJsonStr;
 	jsonData.clear();
 	jsonData["elapsedtime"] = millis();
 	jsonData["rssi"] = WiFi.RSSI();
 	jsonData["mac"] = WiFi.macAddress();
 	jsonData["localip"] = WiFi.localIP().toString();
 	jsonData["ssid"] = WiFi.SSID();
-	jsonData["hostname"] = WiFi.hostname();
+	jsonData["hostname"] = WiFi.getHostname();
 	if (bytesRead > 0)
 	{
 		reader.setJson(&jsonData);
 		if (!reader.ParseData(buffer, bytesRead))
 		{
+			File dataFile;
 			dataFile = LittleFS.open("/log.txt", "w");
 			dataFile.printf("--- Start %lu ---", millis());
-			for (uint n = 0; n < bytesRead; ++n)
+			for (uint32_t n = 0; n < bytesRead; ++n)
 			{
 				if ((n % 16) == 0)
 					dataFile.println();
@@ -39,10 +39,9 @@ void HanReader::saveData()
 			dataFile.close();
 		}
 	}
-	dataFile = LittleFS.open("/data.json", "w");
-	serializeJson(jsonData, dataFile);
-	dataFile.close();
+	serializeJson(jsonData, dataJsonStr);
 	bytesRead = 0;
+	return dataJsonStr;
 }
 
 bool HanReader::read()
