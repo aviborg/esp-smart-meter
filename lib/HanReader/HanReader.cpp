@@ -11,6 +11,20 @@ HanReader::HanReader(Stream *hanPort)
 	bytesRead = 0;
 }
 
+String HanReader::getHex(){
+	String str("");
+	if(bytesRead > 0){
+		for (uint32_t n = 0; n < bytesRead; ++n){
+			str += "0x";
+			if(buffer[n] < 16) str += "0";
+			str += String(buffer[n], HEX);
+			if(n + 1 < bytesRead) str += ", ";
+			if((n % 16) == 15) str += '\n';
+		}
+	}
+	return str;
+}
+
 String HanReader::parseData()
 {
 	String dataJsonStr;

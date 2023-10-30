@@ -54,6 +54,7 @@ void loop()
       lastUpdate = now;
       if (dataReceived) {
         digitalWrite(LED_BUILTIN, LOW); // Lit up LED
+        webServer.setRawData(hanReader.getHex());
         webServer.setDataJson(hanReader.parseData());
         dataReceived = false;
       }

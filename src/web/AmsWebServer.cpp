@@ -18,6 +18,7 @@ void AmsWebServer::setup() {
 	server.on("/readdata.js", HTTP_GET, std::bind(&AmsWebServer::readdataJs, this)); 
 	server.on("/data.json", HTTP_GET, std::bind(&AmsWebServer::dataJson, this));
 	server.on("/log.txt", HTTP_GET, std::bind(&AmsWebServer::logTxt, this));
+	server.on("/raw.dat", HTTP_GET, std::bind(&AmsWebServer::rawData, this));
 	server.begin(); // Web server start
 }
 
@@ -27,6 +28,10 @@ void AmsWebServer::loop() {
 
 void AmsWebServer::setDataJson(String str){
 	dataJsonStr = str;
+}
+
+void AmsWebServer::setRawData(String str){
+	rawDataStr = str;
 }
 
 void AmsWebServer::indexHtml() {
@@ -70,4 +75,11 @@ void AmsWebServer::logTxt() {
 	server.setContentLength(txtStr.length());
 	server.send(200, "text/plain", txtStr);
 	dataFile.close();
+}
+
+void AmsWebServer::rawData() {
+	server.sendHeader("Connection", "close");
+	server.sendHeader("Access-Control-Allow-Origin","*");
+	server.setContentLength(rawDataStr.length());
+	server.send(200, "text/plain", rawDataStr);
 }

@@ -12,6 +12,7 @@ public:
 	void setup();
 	void loop();
 	void setDataJson(String str);
+	void setRawData(String str);
 private:
 	ESP8266WebServer server;
 	void indexHtml();
@@ -19,6 +20,8 @@ private:
 	void readdataJs();
 	void dataJson();
 	void logTxt();
+	void rawData();
+	String rawDataStr;
 	String dataJsonStr;
 };
 

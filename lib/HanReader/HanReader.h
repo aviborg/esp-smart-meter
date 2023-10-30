@@ -11,6 +11,7 @@ class HanReader
 public:
 	HanReader(Stream *hanPort);
 	String parseData();
+	String getHex();
 	bool read();
 private:
 	Stream *han;
