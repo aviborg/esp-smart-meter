@@ -718,7 +718,8 @@ Example of a broken message:
 ---  End  ---
 ```
 
-
+Also raw data can be accessed at http://emeter/raw.dat
+When posting issues, paste the output from this to. It contains hexadecimal data like above.
 
 
 
