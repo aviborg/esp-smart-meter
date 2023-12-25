@@ -42,7 +42,7 @@ void loop()
   static bool dataReceived = false;
   unsigned long now = millis();
   // Reading serial data should be uninterrupted
-  // When a serial read is detected other stuff is delayed 13 ms
+  // When a serial read is detected other stuff is delayed 61 ms
   // using a timeout not divisible by 1000 (even) and a prime number
   // reduce the risk of having the server working while data is received
   if (hanReader.read()) {
@@ -50,7 +50,7 @@ void loop()
     dataReceived = true;
   }
   else {
-    if (now - lastUpdate > 13) {
+    if (now - lastUpdate > 61) {
       lastUpdate = now;
       if (dataReceived) {
         digitalWrite(LED_BUILTIN, LOW); // Lit up LED
