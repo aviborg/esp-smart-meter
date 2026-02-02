@@ -17,4 +17,6 @@ void wifiSetup();
 
 void resetChipOnTrigger();
 
+void setupOTA();
+
 #endif

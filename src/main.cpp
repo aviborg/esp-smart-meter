@@ -28,7 +28,7 @@ void setup() {
   // Setup wifi and webserver
   wifiSetup();
   webServer.setup();
-  ArduinoOTA.begin();
+  setupOTA();
   webServer.setDataJson(hanReader.parseData());
 
   // Flush serial buffer

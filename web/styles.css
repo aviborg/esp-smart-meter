@@ -33,3 +33,18 @@ body {
     border-color: grey;
     border-radius: 8px;
 }
+
+.update-link {
+    display: inline-block;
+    padding: 12px 24px;
+    background-color: #4CAF50;
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: bold;
+    transition: background-color 0.3s;
+}
+
+.update-link:hover {
+    background-color: #45a049;
+}

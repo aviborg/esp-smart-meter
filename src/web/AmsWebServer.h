@@ -21,6 +21,9 @@ private:
 	void dataJson();
 	void logTxt();
 	void rawData();
+	void updateHtml();
+	void handleUpdate();
+	void handleUpdateUpload();
 	String rawDataStr;
 	String dataJsonStr;
 };

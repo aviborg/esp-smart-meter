@@ -4,6 +4,7 @@
 #include <ESP8266mDNS.h>
 #include <Ticker.h>
 #include <ArduinoJson.h>
+#include <ArduinoOTA.h>
 
 char hostName[HOSTNAME_MAXLENGTH] = HOSTNAME_DEFAULT;
 
@@ -116,4 +117,68 @@ void resetChipOnTrigger()
         digitalWrite(LED_BUILTIN, HIGH);
         resetCounter = millis();
     }
+}
+
+void setupOTA()
+{
+    // Set OTA hostname
+    ArduinoOTA.setHostname(hostName);
+    
+    // Configure OTA callbacks for better user experience
+    ArduinoOTA.onStart([]() {
+        String type;
+        if (ArduinoOTA.getCommand() == U_FLASH) {
+            type = "sketch";
+        } else { // U_FS
+            type = "filesystem";
+            // Unmount filesystem if updating filesystem
+            LittleFS.end();
+        }
+        Serial.println("Start updating " + type);
+        // Turn on LED to indicate OTA is starting
+        digitalWrite(LED_BUILTIN, LOW);
+    });
+    
+    ArduinoOTA.onEnd([]() {
+        Serial.println("\nEnd");
+        // Turn off LED when done
+        digitalWrite(LED_BUILTIN, HIGH);
+    });
+    
+    ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
+        // Blink LED during update
+        static unsigned long lastBlink = 0;
+        if (millis() - lastBlink > 100) {
+            digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
+            lastBlink = millis();
+        }
+        Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
+    });
+    
+    ArduinoOTA.onError([](ota_error_t error) {
+        Serial.printf("Error[%u]: ", error);
+        if (error == OTA_AUTH_ERROR) {
+            Serial.println("Auth Failed");
+        } else if (error == OTA_BEGIN_ERROR) {
+            Serial.println("Begin Failed");
+        } else if (error == OTA_CONNECT_ERROR) {
+            Serial.println("Connect Failed");
+        } else if (error == OTA_RECEIVE_ERROR) {
+            Serial.println("Receive Failed");
+        } else if (error == OTA_END_ERROR) {
+            Serial.println("End Failed");
+        }
+        // Blink rapidly to indicate error
+        for (int i = 0; i < 10; i++) {
+            digitalWrite(LED_BUILTIN, LOW);
+            delay(100);
+            digitalWrite(LED_BUILTIN, HIGH);
+            delay(100);
+        }
+    });
+    
+    ArduinoOTA.begin();
+    Serial.println("OTA Ready");
+    Serial.print("Hostname: ");
+    Serial.println(hostName);
 }
