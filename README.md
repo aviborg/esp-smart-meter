@@ -11,6 +11,9 @@ A reliable ESP8266 application to read out data from COSEM/DLMS based smart mete
 * [Installation](#Installation)
 	* [Download firmware](#Downloadfirmware)
 	* [Setup](#Setup)
+	* [OTA Updates](#OTAUpdates)
+		* [Web-based OTA](#WebbasedOTA)
+		* [PlatformIO OTA](#PlatformIOOTA)
 	* [Integrate to home automation server (HAS)](#IntegratetohomeautomationserverHAS)
 		* [Home assistant](#Homeassistant)
 		* [openHAB](#openHAB)
@@ -46,9 +49,9 @@ This does not work on all OS'es and webbrowsers.
 
 A hard reset functions is bound to the flash button/input. If held for 5 seconds it will erase settings and reset the chip.
 
-OTA functionality available, WARNING, no security features are implemented as the project assumes that the MCU is on protected local network.
+**Over-The-Air (OTA) firmware updates are fully supported** with both web-based and PlatformIO methods. The device provides visual feedback during updates via LED indicators. WARNING: No security features are implemented as the project assumes that the MCU is on a protected local network.
 
-For first time setup and connection to your local WiFi the chip will act as a access point which can be connected to from a mobile phone. 
+For first time setup and connection to your local WiFi the chip will act as a access point which can be connected to from a mobile phone.
 
 If data cannot be parsed correctly, failed data will be dumped to a log.txt file accessible through the web interface.
 
@@ -107,6 +110,77 @@ Enter the credentials for you local network. You may also be able to set a local
 
 The ESP will then restart and connect to you local network. If it fails for any reason it will reenter AP-mode.
 The credentials will be stored and kept even if the ESP is flashed with new firmware. To reset the settings, press and hold the flash button for 5 seconds.
+
+### <a name='OTAUpdates'></a>OTA Updates
+
+Once the device is connected to your network, you can update the firmware without connecting a USB cable. Two methods are available:
+
+#### <a name='WebbasedOTA'></a>Web-based OTA
+
+The easiest way to update firmware is through the web interface:
+
+1. Build your firmware binary using PlatformIO:
+   ```
+   pio run -e esp8266
+   ```
+   This creates a firmware file at `.pio/build/esp8266/firmware.bin`
+
+2. Navigate to the device web interface (e.g., `http://emeter/`)
+
+3. Click on the **"Firmware Update (OTA)"** button at the bottom of the main page
+
+4. Select the firmware `.bin` file from your computer
+
+5. Click **"Upload Firmware"** and wait for the update to complete
+
+6. The device will automatically restart with the new firmware
+
+**Visual Feedback during Web OTA:**
+- The upload progress is displayed in the browser with a progress bar
+- The built-in LED will blink rapidly during the upload and installation
+- After successful update, you'll see a confirmation message
+- The device will restart automatically after a few seconds
+
+**Important Notes:**
+- Do not disconnect power during the update process
+- The web interface may become unresponsive during update - this is normal
+- If update fails, the device will continue running the old firmware
+- Make sure you're uploading a valid firmware binary file (.bin)
+
+#### <a name='PlatformIOOTA'></a>PlatformIO OTA
+
+For developers using PlatformIO, you can upload directly from your IDE:
+
+1. In `platformio.ini`, make sure OTA upload is configured:
+   ```ini
+   upload_protocol = espota
+   upload_port = emeter  ; or use IP address like 192.168.1.233
+   ```
+
+2. Build and upload from PlatformIO:
+   ```
+   pio run -e esp8266 -t upload
+   ```
+
+3. The firmware will be uploaded over WiFi automatically
+
+**Visual Feedback during PlatformIO OTA:**
+- The built-in LED will turn on when OTA starts
+- LED will blink rapidly during the update process (every 100ms)
+- LED turns off when update completes successfully
+- On error, LED blinks rapidly 10 times
+
+**OTA Hostname:**
+- The OTA hostname is set to the same name you configured during initial WiFi setup (default: `emeter`)
+- You can use either the hostname or IP address for OTA updates
+- Progress messages are printed to the serial console during OTA updates
+
+**Troubleshooting OTA:**
+- If OTA upload fails, ensure the device is on the same network
+- Check that mDNS/Bonjour is working on your system (for hostname resolution)
+- Try using the IP address instead of hostname in `platformio.ini`
+- Verify the device is not in the middle of receiving serial data
+- Check serial monitor for error messages if update fails
 
 ### <a name='IntegratetohomeautomationserverHAS'></a>Integrate to home automation server (HAS)
 Examples on how to integrate the data into your HAS is shown for Home assistant and OpenHab, but it should work for any HAS capable of reading json.
