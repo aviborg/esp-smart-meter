@@ -168,7 +168,7 @@ For developers using PlatformIO, you can upload directly from your IDE:
 - The built-in LED will turn on when OTA starts
 - LED will blink rapidly during the update process (every 100ms)
 - LED turns off when update completes successfully
-- On error, LED blinks rapidly 10 times
+- On error, LED turns off and error details are printed to serial console
 
 **OTA Hostname:**
 - The OTA hostname is set to the same name you configured during initial WiFi setup (default: `emeter`)

@@ -148,8 +148,10 @@ void setupOTA()
     ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
         // Blink LED during update
         static unsigned long lastBlink = 0;
+        static bool ledState = false;
         if (millis() - lastBlink > 100) {
-            digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
+            ledState = !ledState;
+            digitalWrite(LED_BUILTIN, ledState ? LOW : HIGH);
             lastBlink = millis();
         }
         Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
@@ -168,13 +170,8 @@ void setupOTA()
         } else if (error == OTA_END_ERROR) {
             Serial.println("End Failed");
         }
-        // Blink rapidly to indicate error
-        for (int i = 0; i < 10; i++) {
-            digitalWrite(LED_BUILTIN, LOW);
-            delay(100);
-            digitalWrite(LED_BUILTIN, HIGH);
-            delay(100);
-        }
+        // Turn off LED to indicate error state
+        digitalWrite(LED_BUILTIN, HIGH);
     });
     
     ArduinoOTA.begin();

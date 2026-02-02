@@ -1,6 +1,5 @@
 #include <ArduinoJson.h>
 #include <LittleFS.h>
-#include <ESP8266httpUpdate.h>
 #include "AmsWebServer.h"
 
 #include "root/index_html.h"
