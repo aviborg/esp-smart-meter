@@ -33,3 +33,52 @@ body {
     border-color: grey;
     border-radius: 8px;
 }
+
+.version-container {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #f0f0f0;
+    border-width: 1px;
+    border-style: solid;
+    border-color: grey;
+    border-radius: 8px;
+}
+
+.version-container h3 {
+    margin-top: 0;
+}
+
+.version-field {
+    padding: 5px;
+    margin: 5px 0;
+}
+
+.update-button {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 20px;
+    margin: 10px 5px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.update-button:hover {
+    background-color: #45a049;
+}
+
+.check-button {
+    background-color: #008CBA;
+    color: white;
+    padding: 10px 20px;
+    margin: 10px 5px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.check-button:hover {
+    background-color: #007399;
+}

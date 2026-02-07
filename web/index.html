@@ -6,8 +6,9 @@
 <link rel="stylesheet" href="styles.css">
 
 
-<body onload="insertDataFromJSON('data.json', 'meterdata')">
+<body onload="insertDataFromJSON('data.json', 'meterdata'); checkVersion();">
     <div id="meterdata" class="flex-container"></div>
+    <div id="version-info" class="version-container"></div>
     <script type="text/javascript" src="readdata.js">
     </script>
 
