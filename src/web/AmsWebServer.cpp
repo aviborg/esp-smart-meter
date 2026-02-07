@@ -138,9 +138,7 @@ void AmsWebServer::updateTrigger() {
 	
 	server.send(200, "text/plain", "Update started. Device will reboot after update.");
 	
-	// Give time for response to be sent
-	delay(1000);
-	
 	// Perform update (this will reboot the device)
+	// The UpdateManager will handle the timing internally
 	updateManager->performUpdate();
 }

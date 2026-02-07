@@ -40,6 +40,11 @@ async function checkVersion() {
     } catch (e) {
         console.log('Error fetching version:', e);
     }
+}
+
+// Initialize version check on load and set up periodic checks
+function initVersionCheck() {
+    checkVersion();
     // Check again every 5 minutes
     setInterval(checkVersion, 300000);
 }

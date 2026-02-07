@@ -80,6 +80,7 @@ void loop()
             ArduinoOTA.handle();
             break;
           case 4:
+            // Check for firmware updates (runs every hour via UpdateManager)
             updateManager.checkForUpdates();
             break;
           default:

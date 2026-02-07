@@ -86,15 +86,66 @@ The project uses semantic versioning (MAJOR.MINOR.PATCH):
 
 ## Security Considerations
 
-⚠️ **Important Security Notes:**
+⚠️ **CRITICAL SECURITY WARNINGS:**
 
-1. The update process uses HTTPS but skips certificate validation for simplicity
-2. No authentication is required for the update endpoints
-3. This assumes the device is on a trusted local network
-4. For production use, consider adding:
-   - Authentication for update endpoints
-   - Certificate validation
-   - Signed firmware verification
+### Certificate Validation
+
+**The current implementation disables TLS certificate validation** for both GitHub API requests and firmware downloads. This creates potential security vulnerabilities:
+
+1. **Man-in-the-Middle (MITM) Attacks**: Without certificate validation, an attacker on the same network could intercept the connection and:
+   - Serve malicious firmware updates
+   - Inject false version information
+   - Compromise the device
+
+2. **Current Implementation Rationale**: 
+   - Certificate validation is disabled for simplicity and to reduce memory usage on the ESP8266
+   - The design assumes the device operates on a **trusted, protected local network**
+   - Full certificate validation on ESP8266 can be challenging due to memory constraints
+
+3. **Recommended Improvements for Production**:
+   ```cpp
+   // Option 1: Certificate Fingerprint (lightweight)
+   client.setFingerprint("GitHub certificate SHA1 fingerprint");
+   
+   // Option 2: Full Certificate Chain (more secure but uses more memory)
+   client.setCACert(github_root_ca);
+   
+   // Option 3: Certificate Pinning for GitHub API
+   ```
+
+### Network Security
+
+1. **No Authentication**: The update endpoints (`/update/check`, `/update/trigger`) have no authentication
+   - Anyone on the local network can trigger updates
+   - Consider adding HTTP Basic Auth or API tokens for production
+
+2. **Network Isolation**: 
+   - Deploy the device on a separate, trusted network segment
+   - Use firewall rules to restrict access to the device
+   - Consider VLANs or IoT-specific network segments
+
+### Firmware Integrity
+
+The current implementation does NOT verify:
+- Firmware signatures
+- Checksums or hashes
+- Code signing
+
+**Recommended for Production**:
+- Implement firmware signature verification
+- Add checksum validation before applying updates
+- Use signed releases with cryptographic verification
+
+### Additional Security Measures
+
+For production deployments, consider:
+
+1. **Update Authorization**: Add authentication to update endpoints
+2. **Rate Limiting**: Prevent abuse of update check endpoints
+3. **Update Windows**: Only allow updates during maintenance windows
+4. **Rollback Capability**: Implement dual-partition updates with rollback
+5. **Audit Logging**: Log all update attempts and their outcomes
+6. **Manual Approval**: Require explicit user confirmation before updates
 
 ## Troubleshooting
 

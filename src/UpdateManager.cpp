@@ -62,7 +62,14 @@ void UpdateManager::checkForUpdates() {
 
 bool UpdateManager::fetchLatestRelease() {
     WiFiClientSecure client;
-    client.setInsecure(); // For simplicity, skip certificate validation
+    // WARNING: setInsecure() disables certificate validation
+    // This is a security risk as it allows potential MITM attacks
+    // For production use, consider:
+    // 1. Using certificate fingerprint: client.setFingerprint(...)
+    // 2. Using full certificate validation: client.setCACert(...)
+    // 3. Using certificate pinning for GitHub API
+    // The current implementation assumes a trusted local network
+    client.setInsecure();
     HTTPClient https;
     
     if (!https.begin(client, GITHUB_API_URL)) {
@@ -159,7 +166,12 @@ bool UpdateManager::performUpdate() {
     updateStatus = "Updating...";
     
     WiFiClientSecure client;
-    client.setInsecure(); // Skip certificate validation
+    // WARNING: setInsecure() disables certificate validation
+    // This is a critical security risk for firmware updates as it allows
+    // potential injection of malicious firmware via MITM attacks
+    // For production use, implement proper certificate validation
+    // The current implementation assumes a trusted local network
+    client.setInsecure();
     
     ESPhttpUpdate.setLedPin(LED_BUILTIN, LOW);
     ESPhttpUpdate.rebootOnUpdate(true);
