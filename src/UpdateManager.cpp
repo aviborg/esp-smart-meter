@@ -175,7 +175,7 @@ String UpdateManager::resolveRedirectUrl(const String& url) {
         return "";
     }
     
-    http.setFollowRedirects(HTTPC_DO_NOT_FOLLOW_REDIRECTS);
+    http.setFollowRedirects(HTTPC_DISABLE_FOLLOW_REDIRECTS);
     http.setUserAgent("ESP-Smart-Meter");
     
     int httpCode = http.GET();
