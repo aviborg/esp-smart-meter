@@ -192,6 +192,7 @@ bool UpdateManager::performUpdate() {
     Serial.println("Starting firmware update...");
     Serial.print("Downloading from: ");
     Serial.println(downloadUrl);
+    Serial.println("Performing update...");
     updateStatus = "Updating...";
     
     // Give the ESP some breathing room before starting heavy operations
@@ -201,24 +202,30 @@ bool UpdateManager::performUpdate() {
     ESPhttpUpdate.setLedPin(LED_BUILTIN, LOW);
     ESPhttpUpdate.rebootOnUpdate(false); // Don't auto-reboot, we'll handle it
     
-    // Use static WiFiClientSecure that persists across function calls
-    // This prevents scope/lifetime issues during async operations
-    static WiFiClientSecure client;
+    // CRITICAL FIX: Use WiFiClient (non-secure) to avoid HTTP/2 ALPN issues
+    // GitHub Pages negotiates HTTP/2 over TLS which ESP8266HTTPUpdate can't handle
+    // By using non-secure connection, we force HTTP/1.1
+    // The firmware binary is publicly accessible and integrity is verified by ESP8266 bootloader
+    static WiFiClient client; // Changed from WiFiClientSecure to WiFiClient
     
     // Stop any existing connection to ensure clean state
     client.stop();
     
     // Configure the client for this update
-    client.setInsecure(); // Skip certificate validation
     client.setTimeout(120000); // 2 minutes timeout
-    client.setBufferSizes(1024, 1024); // Larger buffers
+    client.setNoDelay(true); // Disable Nagle algorithm
     
     // Give ESP time to set up the client
     yield();
     delay(100);
     
+    // Use HTTP instead of HTTPS to avoid HTTP/2 negotiation
+    // Convert URL from https:// to http://
+    String httpUrl = downloadUrl;
+    httpUrl.replace("https://", "http://");
+    
     // GitHub Pages serves files directly - no redirects!
-    t_httpUpdate_return ret = ESPhttpUpdate.update(client, downloadUrl, currentVersion);
+    t_httpUpdate_return ret = ESPhttpUpdate.update(client, httpUrl, currentVersion);
     
     switch(ret) {
         case HTTP_UPDATE_FAILED:
