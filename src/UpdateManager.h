@@ -19,6 +19,7 @@ public:
     
 private:
     bool fetchLatestRelease();
+    String resolveRedirectUrl(const String& url);
     int compareVersions(String v1, String v2);
     
     String currentVersion;

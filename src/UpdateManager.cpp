@@ -163,6 +163,33 @@ bool UpdateManager::isUpdateAvailable() {
     return updateAvailable;
 }
 
+String UpdateManager::resolveRedirectUrl(const String& url) {
+    WiFiClientSecure client;
+    HTTPClient http;
+    
+    client.setInsecure();
+    client.setTimeout(10000); // 10 second timeout for redirect check
+    client.setBufferSizes(512, 512);
+    
+    if (!http.begin(client, url)) {
+        return "";
+    }
+    
+    http.setFollowRedirects(HTTPC_DO_NOT_FOLLOW_REDIRECTS);
+    http.setUserAgent("ESP-Smart-Meter");
+    
+    int httpCode = http.GET();
+    String location = "";
+    
+    if (httpCode == HTTP_CODE_FOUND || httpCode == HTTP_CODE_MOVED_PERMANENTLY || httpCode == HTTP_CODE_TEMPORARY_REDIRECT) {
+        location = http.header("Location");
+    }
+    
+    http.end();
+    
+    return location.length() > 0 ? location : url;
+}
+
 bool UpdateManager::performUpdate() {
     if (!updateAvailable || downloadUrl.length() == 0) {
         Serial.println("No update available or download URL not set");
@@ -178,10 +205,17 @@ bool UpdateManager::performUpdate() {
     ESPhttpUpdate.setLedPin(LED_BUILTIN, LOW);
     ESPhttpUpdate.rebootOnUpdate(true);
     
-    // Use FORCE (not STRICT) redirect mode for GitHub's long Azure CDN URLs
-    // FORCE mode follows redirects but doesn't store the entire URL string
-    // STRICT mode caused buffer overflows with 800+ character Azure URLs
-    ESPhttpUpdate.setFollowRedirects(HTTPC_FORCE_FOLLOW_REDIRECTS);
+    // Don't use setFollowRedirects at all - causes issues with GitHub's long Azure URLs
+    // Instead, manually resolve the redirect URL first
+    String actualUrl = resolveRedirectUrl(downloadUrl);
+    if (actualUrl.length() == 0) {
+        Serial.println("Failed to resolve download URL");
+        updateStatus = "URL resolution failed";
+        return false;
+    }
+    
+    Serial.print("Resolved URL: ");
+    Serial.println(actualUrl.substring(0, 100)); // Print first 100 chars only
     
     // Configure the member WiFiClientSecure for HTTPS connection
     // Using a member variable ensures it persists for the object's lifetime
@@ -189,8 +223,8 @@ bool UpdateManager::performUpdate() {
     updateClient.setTimeout(120000); // 2 minutes timeout for large files
     updateClient.setBufferSizes(1024, 1024); // Larger buffers for better performance
     
-    // Pass current version to allow the library to check if update is needed
-    t_httpUpdate_return ret = ESPhttpUpdate.update(updateClient, downloadUrl, currentVersion);
+    // Use the resolved URL directly - no redirects needed
+    t_httpUpdate_return ret = ESPhttpUpdate.update(updateClient, actualUrl, currentVersion);
     
     switch(ret) {
         case HTTP_UPDATE_FAILED:
