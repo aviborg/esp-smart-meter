@@ -87,7 +87,9 @@ Below is a schematic and an example the setup.
 
 ### <a name='Downloadfirmware'></a>Download firmware
 
-The project use Platformio. To use, do this:
+You can download pre-built firmware binaries from the [GitHub Releases page](https://github.com/aviborg/esp-smart-meter/releases). Each release contains a `.bin` file that can be flashed directly to your ESP8266.
+
+Alternatively, you can build the firmware yourself using PlatformIO:
 - Install Visual Code 
 - Add the Platformio extension to Visual Code
 - Open this this project folder i Visual Code

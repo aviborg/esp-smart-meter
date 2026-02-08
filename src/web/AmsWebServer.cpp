@@ -1,6 +1,7 @@
 #include <ArduinoJson.h>
 #include <LittleFS.h>
 #include "AmsWebServer.h"
+#include "version.h"
 #include "../UpdateManager.h"
 
 #include "root/index_html.h"
@@ -95,13 +96,18 @@ void AmsWebServer::rawData() {
 void AmsWebServer::versionJson() {
 	DynamicJsonDocument doc(512);
 	
+	// Add basic version info from version.h (from master)
+	doc["version"] = FIRMWARE_VERSION;
+	doc["build_timestamp"] = BUILD_TIMESTAMP;
+	
+	// Add update manager info (from auto-update feature)
 	if (updateManager) {
 		doc["current_version"] = updateManager->getCurrentVersion();
 		doc["latest_version"] = updateManager->getLatestVersion();
 		doc["update_available"] = updateManager->isUpdateAvailable();
 		doc["status"] = updateManager->getUpdateStatus();
 	} else {
-		doc["current_version"] = "unknown";
+		doc["current_version"] = FIRMWARE_VERSION;
 		doc["latest_version"] = "unknown";
 		doc["update_available"] = false;
 		doc["status"] = "UpdateManager not initialized";
@@ -141,4 +147,6 @@ void AmsWebServer::updateTrigger() {
 	// Perform update (this will reboot the device)
 	// The UpdateManager will handle the timing internally
 	updateManager->performUpdate();
+=======
+>>>>>>> 22536ed
 }

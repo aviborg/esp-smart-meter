@@ -7,6 +7,7 @@
 #include "HanReader.h"
 #include "web/AmsWebServer.h"
 #include "hw/chipSetup.h"
+#include "version.h"
 #include "UpdateManager.h"
 
 AmsWebServer webServer;
@@ -15,6 +16,11 @@ UpdateManager updateManager;
 
 void setup() {
   Serial.begin(115200);
+  Serial.println();
+  Serial.print("ESP Smart Meter - Firmware Version: ");
+  Serial.println(FIRMWARE_VERSION);
+  Serial.print("Build Timestamp: ");
+  Serial.println(BUILD_TIMESTAMP);
 
   pinMode(TRIGGER_PIN, INPUT);      
   pinMode(LED_BUILTIN, OUTPUT);     // Initialize the LED_BUILTIN pin as an output
