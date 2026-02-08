@@ -1,7 +1,6 @@
-name: PlatformIO CI
+name: Build and Test
 
 on: 
-  push:
   pull_request:
   workflow_dispatch:
   schedule:

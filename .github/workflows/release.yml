@@ -1,0 +1,55 @@
+name: Release Firmware
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  build-and-upload:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # Required to upload assets to release
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v6
+      
+    - name: Set up Python
+      uses: actions/setup-python@v6
+      with:
+        python-version: '3.12'
+        
+    - name: Cache PlatformIO
+      uses: actions/cache@v5
+      with:
+        path: ~/.platformio
+        key: ${{ runner.os }}-platformio-${{ hashFiles('**/platformio.ini') }}
+        restore-keys: |
+          ${{ runner.os }}-platformio-
+          
+    - name: Install PlatformIO
+      run: |
+        python -m pip install --upgrade pip
+        pip install --upgrade platformio
+        
+    - name: Update version.h with release tag
+      run: |
+        VERSION="${{ github.event.release.tag_name }}"
+        sed -i "s/\"dev\"/\"${VERSION}\"/" include/version.h
+        cat include/version.h
+        
+    - name: Build firmware
+      run: |
+        pio run -e esp8266
+        
+    - name: Rename firmware binary
+      run: |
+        VERSION="${{ github.event.release.tag_name }}"
+        cp .pio/build/esp8266/firmware.bin esp-smart-meter-${VERSION}.bin
+        
+    - name: Upload firmware to release
+      uses: softprops/action-gh-release@v2
+      with:
+        files: esp-smart-meter-${{ github.event.release.tag_name }}.bin
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
