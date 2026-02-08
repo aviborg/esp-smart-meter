@@ -201,21 +201,24 @@ bool UpdateManager::performUpdate() {
     ESPhttpUpdate.setLedPin(LED_BUILTIN, LOW);
     ESPhttpUpdate.rebootOnUpdate(false); // Don't auto-reboot, we'll handle it
     
-    // Allocate client on heap to ensure it persists through async operations
-    // Stack-allocated clients can cause crashes when library stores references
-    WiFiClientSecure* client = new WiFiClientSecure();
-    client->setInsecure(); // Skip certificate validation
-    client->setTimeout(120000); // 2 minutes timeout
-    client->setBufferSizes(1024, 1024); // Larger buffers
+    // Use static WiFiClientSecure that persists across function calls
+    // This prevents scope/lifetime issues during async operations
+    static WiFiClientSecure client;
+    
+    // Stop any existing connection to ensure clean state
+    client.stop();
+    
+    // Configure the client for this update
+    client.setInsecure(); // Skip certificate validation
+    client.setTimeout(120000); // 2 minutes timeout
+    client.setBufferSizes(1024, 1024); // Larger buffers
     
     // Give ESP time to set up the client
     yield();
+    delay(100);
     
     // GitHub Pages serves files directly - no redirects!
-    t_httpUpdate_return ret = ESPhttpUpdate.update(*client, downloadUrl, currentVersion);
-    
-    // Clean up after update completes or fails
-    delete client;
+    t_httpUpdate_return ret = ESPhttpUpdate.update(client, downloadUrl, currentVersion);
     
     switch(ret) {
         case HTTP_UPDATE_FAILED:
