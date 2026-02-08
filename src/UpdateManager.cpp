@@ -4,7 +4,6 @@
 #include "version.h"
 
 const char* UpdateManager::GITHUB_PAGES_VERSION_URL = "https://aviborg.github.io/esp-smart-meter/firmware/version.json";
-const char* UpdateManager::GITHUB_PAGES_FIRMWARE_URL = "https://aviborg.github.io/esp-smart-meter/firmware/latest.bin";
 
 UpdateManager::UpdateManager() 
     : currentVersion(FIRMWARE_VERSION)
@@ -120,13 +119,13 @@ bool UpdateManager::fetchLatestRelease() {
     
     latestVersion = String(version);
     
-    // Get firmware download URL from GitHub Pages
+    // Get firmware download URL from version.json
     const char* url = doc["download_url"];
     if (url) {
         downloadUrl = String(url);
     } else {
-        // Fallback to static URL if not in JSON
-        downloadUrl = GITHUB_PAGES_FIRMWARE_URL;
+        Serial.println("No download_url found in version.json");
+        return false;
     }
     
     Serial.print("Found firmware version: ");

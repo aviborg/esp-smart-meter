@@ -54,21 +54,28 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         
-    - name: Copy firmware to GitHub Pages directory
+    - name: Prepare firmware for GitHub Pages
       run: |
         VERSION="${{ github.event.release.tag_name }}"
         # Remove 'v' prefix if present
         VERSION_NUM="${VERSION#v}"
         
-        # Copy firmware as latest.bin
-        cp esp-smart-meter-${VERSION}.bin docs/firmware/latest.bin
+        # Fetch the latest main branch
+        git fetch origin main
+        git checkout main
         
-        # Create version.json with metadata
+        # Clean up old firmware files (keep only version.json and README.md)
+        find docs/firmware/ -name "*.bin" -type f -delete
+        
+        # Copy firmware with versioned name
+        cp esp-smart-meter-${VERSION}.bin docs/firmware/esp-smart-meter-${VERSION}.bin
+        
+        # Create version.json with metadata pointing to versioned file
         cat > docs/firmware/version.json << EOF
         {
           "version": "${VERSION_NUM}",
           "build_timestamp": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")",
-          "download_url": "https://aviborg.github.io/esp-smart-meter/firmware/latest.bin",
+          "download_url": "https://aviborg.github.io/esp-smart-meter/firmware/esp-smart-meter-${VERSION}.bin",
           "release_url": "https://github.com/aviborg/esp-smart-meter/releases/tag/${VERSION}"
         }
         EOF
@@ -76,12 +83,20 @@ jobs:
         echo "Created version.json:"
         cat docs/firmware/version.json
         
-    - name: Commit and push firmware to repository
-      run: |
-        git config user.name "github-actions[bot]"
-        git config user.email "github-actions[bot]@users.noreply.github.com"
-        git add docs/firmware/
-        git commit -m "Update firmware for release ${{ github.event.release.tag_name }}"
-        git push origin HEAD:main
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Create Pull Request with firmware update
+      uses: peter-evans/create-pull-request@v7
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        commit-message: "Update firmware for release ${{ github.event.release.tag_name }}"
+        title: "Update firmware for release ${{ github.event.release.tag_name }}"
+        body: |
+          Automated firmware update for release ${{ github.event.release.tag_name }}
+          
+          This PR updates:
+          - Firmware binary: `docs/firmware/esp-smart-meter-${{ github.event.release.tag_name }}.bin`
+          - Version metadata: `docs/firmware/version.json`
+          
+          Old firmware files have been removed to keep the repository clean.
+        branch: firmware-update-${{ github.event.release.tag_name }}
+        delete-branch: true
+        base: main

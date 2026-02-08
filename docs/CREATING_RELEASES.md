@@ -7,9 +7,12 @@ This guide explains how to create GitHub releases that work with the ESP Smart M
 The auto-update system uses **GitHub Pages** to host firmware binaries. When you create a release, the automated workflow:
 1. Builds the firmware with the correct version
 2. Uploads the binary to the GitHub release (for manual downloads)
-3. Copies the firmware to `docs/firmware/latest.bin`
-4. Updates `docs/firmware/version.json` with version metadata
-5. GitHub Pages serves these files to ESP devices for OTA updates
+3. Creates a Pull Request to update GitHub Pages with:
+   - Versioned firmware file: `docs/firmware/esp-smart-meter-v1.0.0.bin`
+   - Updated `docs/firmware/version.json` with version metadata
+4. After PR is merged, GitHub Pages serves these files to ESP devices for OTA updates
+
+**Note**: Old firmware files are automatically removed to keep the repository clean.
 
 ## Release Checklist
 
@@ -47,9 +50,23 @@ Before creating a release, ensure:
    The GitHub Actions workflow will automatically:
    - Build the firmware with the version from the tag
    - Upload `esp-smart-meter-v1.1.0.bin` to the release
-   - Copy firmware to `docs/firmware/latest.bin`
-   - Update `docs/firmware/version.json`
-   - Commit and push to GitHub Pages
+   - Create a Pull Request with:
+     - Versioned firmware: `docs/firmware/esp-smart-meter-v1.1.0.bin`
+     - Updated `docs/firmware/version.json`
+     - Old firmware files removed
+
+6. **Merge the Pull Request**
+   - Review the automated PR
+   - Merge it to make the firmware available via GitHub Pages
+   - ESP devices will now detect and download the new version
+
+### Why Pull Requests?
+
+The workflow uses Pull Requests instead of direct commits because:
+- ✅ Works with protected main branch
+- ✅ Provides review opportunity before publishing firmware
+- ✅ Creates audit trail of firmware deployments
+- ✅ Can be automatically merged if desired
 
 ### Via GitHub CLI
 
@@ -58,6 +75,9 @@ Before creating a release, ensure:
 gh release create v1.1.0 \
   --title "Release v1.1.0" \
   --notes "Release notes here"
+
+# Then merge the automated PR
+gh pr merge firmware-update-v1.1.0 --auto --squash
 ```
 
 ## Manual Build (Advanced)
@@ -75,10 +95,13 @@ The 'v' or 'V' prefix will be automatically stripped for version comparison.
 
 ### Firmware File Names
 
-Any `.bin` file in the release assets will be detected. Recommended names:
-- `firmware.bin` (simple)
-- `esp-smart-meter-v1.0.0.bin` (descriptive)
-- `esp8266-firmware-v1.0.0.bin` (platform-specific)
+The workflow creates versioned firmware files:
+- `esp-smart-meter-v1.0.0.bin` (automatically named by workflow)
+
+The versioned filename ensures:
+- Clear version history in the repository
+- Easy identification of deployed versions
+- Automatic cleanup of old versions
 
 ## Semantic Versioning
 

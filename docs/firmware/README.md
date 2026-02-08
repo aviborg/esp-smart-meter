@@ -4,34 +4,43 @@ This directory hosts firmware binaries for OTA (Over-The-Air) updates via GitHub
 
 ## Files
 
-- `latest.bin` - The most recent firmware binary
-- `version.json` - Version metadata for the latest firmware
+- `esp-smart-meter-v*.bin` - Versioned firmware binaries (e.g., `esp-smart-meter-v1.0.0.bin`)
+- `version.json` - Version metadata pointing to the current firmware
 
 ## How It Works
 
 1. When a new release is created, the GitHub Actions workflow builds the firmware
-2. The workflow copies the firmware binary as `latest.bin` to this directory
-3. A `version.json` file is created with version information
-4. The changes are committed and pushed to the repository
-5. GitHub Pages serves these files at `https://aviborg.github.io/esp-smart-meter/firmware/`
-6. ESP devices fetch firmware updates directly from GitHub Pages (no redirects!)
+2. The workflow creates a Pull Request that:
+   - Removes old firmware binaries
+   - Adds the new versioned firmware: `esp-smart-meter-v1.0.0.bin`
+   - Updates `version.json` with version information and download URL
+3. After the PR is merged, GitHub Pages serves the firmware
+4. ESP devices fetch the download URL from `version.json` and update directly
 
-## OTA Update URL
+## OTA Update Process
 
-ESP devices fetch firmware from:
-```
-https://aviborg.github.io/esp-smart-meter/firmware/latest.bin
-```
+ESP devices:
+1. Fetch version info from:
+   ```
+   https://aviborg.github.io/esp-smart-meter/firmware/version.json
+   ```
 
-Version information is available at:
-```
-https://aviborg.github.io/esp-smart-meter/firmware/version.json
-```
+2. Parse the JSON to get the download URL:
+   ```json
+   {
+     "version": "1.0.0",
+     "download_url": "https://aviborg.github.io/esp-smart-meter/firmware/esp-smart-meter-v1.0.0.bin",
+     ...
+   }
+   ```
+
+3. Download firmware from the versioned URL
 
 ## Benefits
 
 ✅ Direct HTTPS download (no 302 redirects)
-✅ Short, stable URLs
+✅ Versioned filenames for clear history
 ✅ Works reliably with ESP8266HTTPUpdate
 ✅ No time-limited signed URLs
-✅ Simple and maintainable
+✅ Automatic cleanup of old versions
+✅ Pull Request workflow works with protected branches

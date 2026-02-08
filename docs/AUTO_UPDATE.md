@@ -17,20 +17,23 @@ The device automatically checks for new firmware releases every hour by:
 
 Firmware binaries are hosted on GitHub Pages for reliable OTA updates:
 - **Version info**: `https://aviborg.github.io/esp-smart-meter/firmware/version.json`
-- **Firmware binary**: `https://aviborg.github.io/esp-smart-meter/firmware/latest.bin`
+- **Firmware binary**: Versioned URL from version.json (e.g., `https://aviborg.github.io/esp-smart-meter/firmware/esp-smart-meter-v1.0.0.bin`)
 
 **Why GitHub Pages?**
 - ✅ Direct HTTPS downloads (no 302 redirects)
 - ✅ Short, stable URLs that work with ESP8266
 - ✅ No time-limited signed URLs
 - ✅ Reliable and maintained by GitHub
+- ✅ Versioned filenames for clear history
 
 When you create a GitHub release, the automated workflow:
 1. Builds the firmware
 2. Uploads it to the release (for archival/download)
-3. Copies it to `docs/firmware/latest.bin` (for OTA updates)
-4. Updates `docs/firmware/version.json` with version metadata
-5. GitHub Pages serves these files directly to ESP devices
+3. Creates a Pull Request to update GitHub Pages with:
+   - Versioned firmware: `docs/firmware/esp-smart-meter-v1.0.0.bin`
+   - Updated `docs/firmware/version.json` pointing to the versioned file
+   - Old firmware files removed automatically
+4. After PR is merged, GitHub Pages serves the new firmware to ESP devices
 
 ### Version Information
 
