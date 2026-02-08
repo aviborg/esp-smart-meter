@@ -186,6 +186,10 @@ bool UpdateManager::performUpdate() {
     static WiFiClientSecure client;
     client.setInsecure(); // Skip certificate validation
     
+    // Configure timeouts and buffer sizes for large firmware downloads
+    client.setTimeout(120000); // 2 minutes timeout for large files
+    client.setBufferSizes(1024, 1024); // Larger buffers for better performance
+    
     t_httpUpdate_return ret = ESPhttpUpdate.update(client, downloadUrl);
     
     switch(ret) {
