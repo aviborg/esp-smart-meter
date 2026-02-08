@@ -96,11 +96,11 @@ void AmsWebServer::rawData() {
 void AmsWebServer::versionJson() {
 	DynamicJsonDocument doc(512);
 	
-	// Add basic version info from version.h (from master)
+	// Add basic version info
 	doc["version"] = FIRMWARE_VERSION;
 	doc["build_timestamp"] = BUILD_TIMESTAMP;
 	
-	// Add update manager info (from auto-update feature)
+	// Add update manager status
 	if (updateManager) {
 		doc["current_version"] = updateManager->getCurrentVersion();
 		doc["latest_version"] = updateManager->getLatestVersion();
