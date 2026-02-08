@@ -70,7 +70,17 @@ bool UpdateManager::fetchLatestRelease() {
     // 3. Using certificate pinning for GitHub API
     // The current implementation assumes a trusted local network
     client.setInsecure();
+    
+    // Set timeout for connection (10 seconds)
+    client.setTimeout(10000);
+    
+    // Set buffer sizes for HTTPS connection
+    client.setBufferSizes(512, 512);
+    
     HTTPClient https;
+    
+    // Set timeout for HTTP request (15 seconds)
+    https.setTimeout(15000);
     
     if (!https.begin(client, GITHUB_API_URL)) {
         Serial.println("Failed to connect to GitHub API");
@@ -172,6 +182,12 @@ bool UpdateManager::performUpdate() {
     // For production use, implement proper certificate validation
     // The current implementation assumes a trusted local network
     client.setInsecure();
+    
+    // Set timeout for connection (30 seconds for firmware download)
+    client.setTimeout(30000);
+    
+    // Set buffer sizes for HTTPS connection
+    client.setBufferSizes(512, 512);
     
     ESPhttpUpdate.setLedPin(LED_BUILTIN, LOW);
     ESPhttpUpdate.rebootOnUpdate(true);

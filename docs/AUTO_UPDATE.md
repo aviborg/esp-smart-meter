@@ -151,10 +151,19 @@ For production deployments, consider:
 
 ### Update Check Fails
 
-If update checks fail:
+If update checks fail with error code -1:
+1. **Connection timeout**: The device might not be able to reach GitHub's API. Verify internet connectivity and DNS resolution.
+2. **TLS/SSL handshake failure**: The ESP8266 might be experiencing issues with the HTTPS connection. The timeout and buffer settings have been configured to handle this.
+3. **Memory constraints**: Ensure the device has sufficient free heap memory (at least 20KB recommended).
+4. Check that GitHub API is accessible from your network
+5. Review serial console output for detailed error messages
+
+If update checks fail with other errors:
+If update checks fail with other errors:
 1. Verify the device has internet connectivity
 2. Check that GitHub API is accessible from your network
 3. Review serial console output for error messages
+4. Try increasing timeout values in UpdateManager if on slow network
 
 ### Update Download Fails
 
