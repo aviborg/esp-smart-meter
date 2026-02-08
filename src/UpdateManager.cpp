@@ -187,7 +187,8 @@ bool UpdateManager::performUpdate() {
     updateClient.setTimeout(120000); // 2 minutes timeout for large files
     updateClient.setBufferSizes(1024, 1024); // Larger buffers for better performance
     
-    t_httpUpdate_return ret = ESPhttpUpdate.update(updateClient, downloadUrl);
+    // Pass current version to allow the library to check if update is needed
+    t_httpUpdate_return ret = ESPhttpUpdate.update(updateClient, downloadUrl, currentVersion);
     
     switch(ret) {
         case HTTP_UPDATE_FAILED:
