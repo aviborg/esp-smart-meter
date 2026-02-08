@@ -28,7 +28,6 @@ private:
     bool updateCheckInProgress;
     unsigned long lastUpdateCheck;
     String updateStatus;
-    WiFiClientSecure updateClient; // Persistent client for firmware updates
     
     static const unsigned long UPDATE_CHECK_INTERVAL = 3600000; // 1 hour in milliseconds
     static const char* GITHUB_PAGES_VERSION_URL; // Firmware URL is read from version.json
