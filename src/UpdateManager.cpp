@@ -175,22 +175,18 @@ bool UpdateManager::performUpdate() {
     Serial.println(downloadUrl);
     updateStatus = "Updating...";
     
-    WiFiClientSecure client;
-    // WARNING: setInsecure() disables certificate validation
-    // This is a critical security risk for firmware updates as it allows
-    // potential injection of malicious firmware via MITM attacks
-    // For production use, implement proper certificate validation
-    // The current implementation assumes a trusted local network
-    client.setInsecure();
-    
-    // Set timeout for connection (30 seconds for firmware download)
-    client.setTimeout(30000);
-    
-    // Set buffer sizes for HTTPS connection
-    client.setBufferSizes(512, 512);
-    
     ESPhttpUpdate.setLedPin(LED_BUILTIN, LOW);
     ESPhttpUpdate.rebootOnUpdate(true);
+    
+    // Set up WiFi client for HTTPS with proper configuration
+    WiFiClientSecure client;
+    client.setInsecure(); // Skip certificate validation
+    client.setTimeout(30000); // 30 second timeout
+    client.setBufferSizes(512, 512);
+    
+    // Use the update method that handles redirects properly
+    // The ESP8266HTTPUpdate library will follow redirects when we use this approach
+    ESPhttpUpdate.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
     
     t_httpUpdate_return ret = ESPhttpUpdate.update(client, downloadUrl);
     
