@@ -2,12 +2,13 @@
 #include <LittleFS.h>
 #include "AmsWebServer.h"
 #include "version.h"
+#include "../UpdateManager.h"
 
 #include "root/index_html.h"
 #include "root/styles_css.h"
 #include "root/readdata_js.h"
 
-AmsWebServer::AmsWebServer() {
+AmsWebServer::AmsWebServer() : updateManager(nullptr) {
 }
 
 AmsWebServer::~AmsWebServer() {
@@ -21,6 +22,8 @@ void AmsWebServer::setup() {
 	server.on("/log.txt", HTTP_GET, std::bind(&AmsWebServer::logTxt, this));
 	server.on("/raw.dat", HTTP_GET, std::bind(&AmsWebServer::rawData, this));
 	server.on("/version.json", HTTP_GET, std::bind(&AmsWebServer::versionJson, this));
+	server.on("/update/check", HTTP_GET, std::bind(&AmsWebServer::updateCheck, this));
+	server.on("/update/trigger", HTTP_POST, std::bind(&AmsWebServer::updateTrigger, this));
 	server.begin(); // Web server start
 }
 
@@ -34,6 +37,10 @@ void AmsWebServer::setDataJson(String str){
 
 void AmsWebServer::setRawData(String str){
 	rawDataStr = str;
+}
+
+void AmsWebServer::setUpdateManager(UpdateManager* mgr){
+	updateManager = mgr;
 }
 
 void AmsWebServer::indexHtml() {
@@ -87,9 +94,24 @@ void AmsWebServer::rawData() {
 }
 
 void AmsWebServer::versionJson() {
-	StaticJsonDocument<128> doc;
+	DynamicJsonDocument doc(512);
+	
+	// Add basic version info
 	doc["version"] = FIRMWARE_VERSION;
 	doc["build_timestamp"] = BUILD_TIMESTAMP;
+	
+	// Add update manager status
+	if (updateManager) {
+		doc["current_version"] = updateManager->getCurrentVersion();
+		doc["latest_version"] = updateManager->getLatestVersion();
+		doc["update_available"] = updateManager->isUpdateAvailable();
+		doc["status"] = updateManager->getUpdateStatus();
+	} else {
+		doc["current_version"] = FIRMWARE_VERSION;
+		doc["latest_version"] = "unknown";
+		doc["update_available"] = false;
+		doc["status"] = "UpdateManager not initialized";
+	}
 	
 	String jsonStr;
 	serializeJson(doc, jsonStr);
@@ -98,4 +120,31 @@ void AmsWebServer::versionJson() {
 	server.sendHeader("Access-Control-Allow-Origin", "*");
 	server.setContentLength(jsonStr.length());
 	server.send(200, "application/json", jsonStr);
+}
+
+void AmsWebServer::updateCheck() {
+	if (updateManager) {
+		updateManager->checkForUpdates();
+		server.send(200, "text/plain", "Update check initiated");
+	} else {
+		server.send(500, "text/plain", "UpdateManager not initialized");
+	}
+}
+
+void AmsWebServer::updateTrigger() {
+	if (!updateManager) {
+		server.send(500, "text/plain", "UpdateManager not initialized");
+		return;
+	}
+	
+	if (!updateManager->isUpdateAvailable()) {
+		server.send(400, "text/plain", "No update available");
+		return;
+	}
+	
+	server.send(200, "text/plain", "Update started. Device will reboot after update.");
+	
+	// Perform update (this will reboot the device)
+	// The UpdateManager will handle the timing internally
+	updateManager->performUpdate();
 }

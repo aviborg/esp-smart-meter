@@ -8,9 +8,11 @@
 #include "web/AmsWebServer.h"
 #include "hw/chipSetup.h"
 #include "version.h"
+#include "UpdateManager.h"
 
 AmsWebServer webServer;
 HanReader hanReader(&Serial);
+UpdateManager updateManager;
 
 void setup() {
   Serial.begin(115200);
@@ -34,8 +36,12 @@ void setup() {
   // Setup wifi and webserver
   wifiSetup();
   webServer.setup();
+  webServer.setUpdateManager(&updateManager);
   ArduinoOTA.begin();
   webServer.setDataJson(hanReader.parseData());
+  
+  // Initialize update manager
+  updateManager.begin();
 
   // Flush serial buffer
   while(Serial.available()>0) Serial.read(); 
@@ -78,6 +84,10 @@ void loop()
             break;
           case 3:
             ArduinoOTA.handle();
+            break;
+          case 4:
+            // Check for firmware updates (runs every hour via UpdateManager)
+            updateManager.checkForUpdates();
             break;
           default:
             yield();

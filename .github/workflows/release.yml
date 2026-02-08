@@ -9,6 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write  # Required to upload assets to release
+      pull-requests: write  # Required to create pull requests
     
     steps:
     - name: Checkout code
@@ -41,6 +42,10 @@ jobs:
     - name: Build firmware
       run: |
         pio run -e esp8266
+    
+    - name: Restore version.h
+      run: |
+        git restore include/version.h
         
     - name: Rename firmware binary
       run: |
@@ -53,3 +58,51 @@ jobs:
         files: esp-smart-meter-${{ github.event.release.tag_name }}.bin
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Prepare firmware for GitHub Pages
+      run: |
+        VERSION="${{ github.event.release.tag_name }}"
+        # Remove 'v' prefix if present
+        VERSION_NUM="${VERSION#v}"
+        
+        # Fetch the latest main branch
+        git fetch origin main
+        git checkout main
+        mkdir -p docs/firmware
+        
+        # Clean up old firmware files (keep only version.json and README.md)
+        find docs/firmware/ -name "*.bin" -type f -delete
+        
+        # Move firmware with versioned name
+        mv esp-smart-meter-${VERSION}.bin docs/firmware/esp-smart-meter-${VERSION}.bin
+        
+        # Create version.json with metadata pointing to versioned file
+        cat > docs/firmware/version.json << EOF
+        {
+          "version": "${VERSION_NUM}",
+          "build_timestamp": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")",
+          "download_url": "https://aviborg.github.io/esp-smart-meter/firmware/esp-smart-meter-${VERSION}.bin",
+          "release_url": "https://github.com/aviborg/esp-smart-meter/releases/tag/${VERSION}"
+        }
+        EOF
+        
+        echo "Created version.json:"
+        cat docs/firmware/version.json
+        
+    - name: Create Pull Request with firmware update
+      uses: peter-evans/create-pull-request@v7
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        commit-message: "Update firmware for release ${{ github.event.release.tag_name }}"
+        title: "Update firmware for release ${{ github.event.release.tag_name }}"
+        body: |
+          Automated firmware update for release ${{ github.event.release.tag_name }}
+          
+          This PR updates:
+          - Firmware binary: `docs/firmware/esp-smart-meter-${{ github.event.release.tag_name }}.bin`
+          - Version metadata: `docs/firmware/version.json`
+          
+          Old firmware files have been removed to keep the repository clean.
+        branch: firmware-update-${{ github.event.release.tag_name }}
+        delete-branch: true
+        base: main

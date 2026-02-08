@@ -48,6 +48,8 @@ A hard reset functions is bound to the flash button/input. If held for 5 seconds
 
 OTA functionality available, WARNING, no security features are implemented as the project assumes that the MCU is on protected local network.
 
+**Auto-Update Feature:** The device can automatically check for new firmware releases from GitHub and update itself over-the-air. See [AUTO_UPDATE.md](docs/AUTO_UPDATE.md) for details on how to use this feature.
+
 For first time setup and connection to your local WiFi the chip will act as a access point which can be connected to from a mobile phone. 
 
 If data cannot be parsed correctly, failed data will be dumped to a log.txt file accessible through the web interface.
