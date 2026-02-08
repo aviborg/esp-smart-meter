@@ -69,8 +69,8 @@ jobs:
         # Clean up old firmware files (keep only version.json and README.md)
         find docs/firmware/ -name "*.bin" -type f -delete
         
-        # Copy firmware with versioned name
-        cp esp-smart-meter-${VERSION}.bin docs/firmware/esp-smart-meter-${VERSION}.bin
+        # Move firmware with versioned name
+        mv esp-smart-meter-${VERSION}.bin docs/firmware/esp-smart-meter-${VERSION}.bin
         
         # Create version.json with metadata pointing to versioned file
         cat > docs/firmware/version.json << EOF
