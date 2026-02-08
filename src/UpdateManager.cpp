@@ -136,44 +136,44 @@ bool UpdateManager::fetchLatestRelease() {
     return true;
 }
 
-int UpdateManager::compareVersions(String v1, String v2) {
+int UpdateManager::compareVersions(String latestVersion, String currentVersion) {
     // Simple version comparison (major.minor.patch)
-    // Returns: 1 if v1 > v2, -1 if v1 < v2, 0 if equal
+    // Returns: 1 if latestVersion > currentVersion, -1 if latestVersion < currentVersion, 0 if equal
     
     // Special case: if current version is "dev", always consider update available
-    if (v1 == "dev") {
-        return -1; // v1 < v2, so update is available
+    if (currentVersion == "dev") {
+        return 1; // latestVersion < currentVersion, so update is available
     }
     
     // Strip pre-release suffixes (e.g., "1.0.0-alpha" -> "1.0.0")
-    String v1Clean = v1;
-    String v2Clean = v2;
+    String latestVersionClean = latestVersion;
+    String currentVersionClean = currentVersion;
     
-    int dashPos1 = v1Clean.indexOf('-');
+    int dashPos1 = latestVersionClean.indexOf('-');
     if (dashPos1 > 0) {
-        v1Clean = v1Clean.substring(0, dashPos1);
+        latestVersionClean = latestVersionClean.substring(0, dashPos1);
     }
     
-    int dashPos2 = v2Clean.indexOf('-');
+    int dashPos2 = currentVersionClean.indexOf('-');
     if (dashPos2 > 0) {
-        v2Clean = v2Clean.substring(0, dashPos2);
+        currentVersionClean = currentVersionClean.substring(0, dashPos2);
     }
     
-    int v1Major = 0, v1Minor = 0, v1Patch = 0;
-    int v2Major = 0, v2Minor = 0, v2Patch = 0;
+    int latestVersionMajor = 0, latestVersionMinor = 0, latestVersionPatch = 0;
+    int currentVersionMajor = 0, currentVersionMinor = 0, currentVersionPatch = 0;
     
     // Parse versions safely
-    int parsed1 = sscanf(v1Clean.c_str(), "%d.%d.%d", &v1Major, &v1Minor, &v1Patch);
-    int parsed2 = sscanf(v2Clean.c_str(), "%d.%d.%d", &v2Major, &v2Minor, &v2Patch);
+    int parsed1 = sscanf(latestVersionClean.c_str(), "%d.%d.%d", &latestVersionMajor, &latestVersionMinor, &latestVersionPatch);
+    int parsed2 = sscanf(currentVersionClean.c_str(), "%d.%d.%d", &currentVersionMajor, &currentVersionMinor, &currentVersionPatch);
     
     // If either version couldn't be parsed, consider them equal (no update)
     if (parsed1 < 1 || parsed2 < 1) {
         return 0;
     }
     
-    if (v1Major != v2Major) return (v1Major > v2Major) ? 1 : -1;
-    if (v1Minor != v2Minor) return (v1Minor > v2Minor) ? 1 : -1;
-    if (v1Patch != v2Patch) return (v1Patch > v2Patch) ? 1 : -1;
+    if (latestVersionMajor != currentVersionMajor) return (latestVersionMajor > currentVersionMajor) ? 1 : -1;
+    if (latestVersionMinor != currentVersionMinor) return (latestVersionMinor > currentVersionMinor) ? 1 : -1;
+    if (latestVersionPatch != currentVersionPatch) return (latestVersionPatch > currentVersionPatch) ? 1 : -1;
     
     return 0;
 }
