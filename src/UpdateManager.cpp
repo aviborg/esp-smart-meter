@@ -181,16 +181,13 @@ bool UpdateManager::performUpdate() {
     // Configure redirect handling for GitHub releases
     ESPhttpUpdate.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
     
-    // Create WiFiClientSecure for HTTPS connection
-    // Using a static variable to ensure it persists during async operations
-    static WiFiClientSecure client;
-    client.setInsecure(); // Skip certificate validation
+    // Configure the member WiFiClientSecure for HTTPS connection
+    // Using a member variable ensures it persists for the object's lifetime
+    updateClient.setInsecure(); // Skip certificate validation
+    updateClient.setTimeout(120000); // 2 minutes timeout for large files
+    updateClient.setBufferSizes(1024, 1024); // Larger buffers for better performance
     
-    // Configure timeouts and buffer sizes for large firmware downloads
-    client.setTimeout(120000); // 2 minutes timeout for large files
-    client.setBufferSizes(1024, 1024); // Larger buffers for better performance
-    
-    t_httpUpdate_return ret = ESPhttpUpdate.update(client, downloadUrl);
+    t_httpUpdate_return ret = ESPhttpUpdate.update(updateClient, downloadUrl);
     
     switch(ret) {
         case HTTP_UPDATE_FAILED:
