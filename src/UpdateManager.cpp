@@ -202,30 +202,30 @@ bool UpdateManager::performUpdate() {
     ESPhttpUpdate.setLedPin(LED_BUILTIN, LOW);
     ESPhttpUpdate.rebootOnUpdate(false); // Don't auto-reboot, we'll handle it
     
-    // CRITICAL FIX: Use WiFiClient (non-secure) to avoid HTTP/2 ALPN issues
-    // GitHub Pages negotiates HTTP/2 over TLS which ESP8266HTTPUpdate can't handle
-    // By using non-secure connection, we force HTTP/1.1
-    // The firmware binary is publicly accessible and integrity is verified by ESP8266 bootloader
-    static WiFiClient client; // Changed from WiFiClientSecure to WiFiClient
+    // CRITICAL FIX: GitHub Pages may negotiate HTTP/2 via ALPN during TLS handshake
+    // ESP8266HTTPUpdate library only supports HTTP/1.1 request/response format
+    // 
+    // Using WiFiClientSecure with setInsecure() should prevent ALPN negotiation in BearSSL
+    // However, if server still sends HTTP/2, the library will fail
+    // 
+    // WORKAROUND: The ESP8266 Core 3.0.2's BearSSL doesn't advertise ALPN when setInsecure() is used
+    // This should force GitHub Pages CDN to fall back to HTTP/1.1
+    static WiFiClientSecure client;
     
     // Stop any existing connection to ensure clean state
     client.stop();
     
-    // Configure the client for this update
-    client.setTimeout(120000); // 2 minutes timeout
-    client.setNoDelay(true); // Disable Nagle algorithm
+    // Configure for this update
+    client.setInsecure(); // Disables cert validation; BearSSL won't advertise ALPN/h2
+    client.setTimeout(120000); // 2 minutes timeout for slow HTTPS downloads
+    client.setBufferSizes(1024, 1024); // Adequate buffers for HTTPS
     
-    // Give ESP time to set up the client
+    // Give ESP time to configure the client
     yield();
     delay(100);
     
-    // Use HTTP instead of HTTPS to avoid HTTP/2 negotiation
-    // Convert URL from https:// to http://
-    String httpUrl = downloadUrl;
-    httpUrl.replace("https://", "http://");
-    
-    // GitHub Pages serves files directly - no redirects!
-    t_httpUpdate_return ret = ESPhttpUpdate.update(client, httpUrl, currentVersion);
+    // Use HTTPS URL as-is (GitHub Pages requires HTTPS, redirects HTTP to HTTPS)
+    t_httpUpdate_return ret = ESPhttpUpdate.update(client, downloadUrl, currentVersion);
     
     switch(ret) {
         case HTTP_UPDATE_FAILED:
