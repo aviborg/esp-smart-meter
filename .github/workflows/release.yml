@@ -7,6 +7,8 @@ on:
 jobs:
   build-and-upload:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write  # Required to upload assets to release
     
     steps:
     - name: Checkout code
