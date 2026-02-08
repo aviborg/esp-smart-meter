@@ -42,6 +42,10 @@ jobs:
     - name: Build firmware
       run: |
         pio run -e esp8266
+    
+    - name: Restore version.h
+      run: |
+        git restore include/version.h
         
     - name: Rename firmware binary
       run: |
