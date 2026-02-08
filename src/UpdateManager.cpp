@@ -181,9 +181,12 @@ bool UpdateManager::performUpdate() {
     // Configure redirect handling for GitHub releases
     ESPhttpUpdate.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
     
-    // Let the library handle the connection internally
-    // This avoids stack issues with WiFiClientSecure going out of scope
-    t_httpUpdate_return ret = ESPhttpUpdate.update(downloadUrl);
+    // Create WiFiClientSecure for HTTPS connection
+    // Using a static variable to ensure it persists during async operations
+    static WiFiClientSecure client;
+    client.setInsecure(); // Skip certificate validation
+    
+    t_httpUpdate_return ret = ESPhttpUpdate.update(client, downloadUrl);
     
     switch(ret) {
         case HTTP_UPDATE_FAILED:
