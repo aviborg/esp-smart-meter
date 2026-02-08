@@ -1,6 +1,7 @@
 #include <ArduinoJson.h>
 #include <LittleFS.h>
 #include "AmsWebServer.h"
+#include "version.h"
 
 #include "root/index_html.h"
 #include "root/styles_css.h"
@@ -19,6 +20,7 @@ void AmsWebServer::setup() {
 	server.on("/data.json", HTTP_GET, std::bind(&AmsWebServer::dataJson, this));
 	server.on("/log.txt", HTTP_GET, std::bind(&AmsWebServer::logTxt, this));
 	server.on("/raw.dat", HTTP_GET, std::bind(&AmsWebServer::rawData, this));
+	server.on("/version.json", HTTP_GET, std::bind(&AmsWebServer::versionJson, this));
 	server.begin(); // Web server start
 }
 
@@ -82,4 +84,18 @@ void AmsWebServer::rawData() {
 	server.sendHeader("Access-Control-Allow-Origin","*");
 	server.setContentLength(rawDataStr.length());
 	server.send(200, "text/plain", rawDataStr);
+}
+
+void AmsWebServer::versionJson() {
+	StaticJsonDocument<128> doc;
+	doc["version"] = FIRMWARE_VERSION;
+	doc["build_timestamp"] = BUILD_TIMESTAMP;
+	
+	String jsonStr;
+	serializeJson(doc, jsonStr);
+	
+	server.sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+	server.sendHeader("Access-Control-Allow-Origin", "*");
+	server.setContentLength(jsonStr.length());
+	server.send(200, "application/json", jsonStr);
 }

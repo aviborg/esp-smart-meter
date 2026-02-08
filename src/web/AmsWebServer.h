@@ -21,6 +21,7 @@ private:
 	void dataJson();
 	void logTxt();
 	void rawData();
+	void versionJson();
 	String rawDataStr;
 	String dataJsonStr;
 };
