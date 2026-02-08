@@ -178,11 +178,10 @@ bool UpdateManager::performUpdate() {
     ESPhttpUpdate.setLedPin(LED_BUILTIN, LOW);
     ESPhttpUpdate.rebootOnUpdate(true);
     
-    // IMPORTANT: Do NOT use setFollowRedirects for GitHub releases
-    // GitHub redirects to Azure CDN URLs that are extremely long (800+ chars)
-    // with SAS tokens, which causes buffer overflows on ESP8266
-    // Instead, let the library handle redirects with default behavior (HTTPC_DISABLE_FOLLOW_REDIRECTS)
-    // which works better with the ESP8266's limited memory
+    // Use FORCE (not STRICT) redirect mode for GitHub's long Azure CDN URLs
+    // FORCE mode follows redirects but doesn't store the entire URL string
+    // STRICT mode caused buffer overflows with 800+ character Azure URLs
+    ESPhttpUpdate.setFollowRedirects(HTTPC_FORCE_FOLLOW_REDIRECTS);
     
     // Configure the member WiFiClientSecure for HTTPS connection
     // Using a member variable ensures it persists for the object's lifetime
