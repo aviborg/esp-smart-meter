@@ -3,7 +3,8 @@
 #include <ArduinoJson.h>
 #include "version.h"
 
-const char* UpdateManager::GITHUB_API_URL = "https://api.github.com/repos/aviborg/esp-smart-meter/releases/latest";
+const char* UpdateManager::GITHUB_PAGES_VERSION_URL = "https://aviborg.github.io/esp-smart-meter/firmware/version.json";
+const char* UpdateManager::GITHUB_PAGES_FIRMWARE_URL = "https://aviborg.github.io/esp-smart-meter/firmware/latest.bin";
 
 UpdateManager::UpdateManager() 
     : currentVersion(FIRMWARE_VERSION)
@@ -67,7 +68,7 @@ bool UpdateManager::fetchLatestRelease() {
     // For production use, consider:
     // 1. Using certificate fingerprint: client.setFingerprint(...)
     // 2. Using full certificate validation: client.setCACert(...)
-    // 3. Using certificate pinning for GitHub API
+    // 3. Using certificate pinning for GitHub Pages
     // The current implementation assumes a trusted local network
     client.setInsecure();
     
@@ -82,8 +83,9 @@ bool UpdateManager::fetchLatestRelease() {
     // Set timeout for HTTP request (15 seconds)
     https.setTimeout(15000);
     
-    if (!https.begin(client, GITHUB_API_URL)) {
-        Serial.println("Failed to connect to GitHub API");
+    // Fetch version information from GitHub Pages
+    if (!https.begin(client, GITHUB_PAGES_VERSION_URL)) {
+        Serial.println("Failed to connect to GitHub Pages");
         return false;
     }
     
@@ -91,7 +93,7 @@ bool UpdateManager::fetchLatestRelease() {
     int httpCode = https.GET();
     
     if (httpCode != HTTP_CODE_OK) {
-        Serial.printf("GitHub API request failed, error: %d\n", httpCode);
+        Serial.printf("GitHub Pages request failed, error: %d\n", httpCode);
         https.end();
         return false;
     }
@@ -100,7 +102,7 @@ bool UpdateManager::fetchLatestRelease() {
     https.end();
     
     // Parse JSON response
-    DynamicJsonDocument doc(4096);
+    DynamicJsonDocument doc(1024);
     DeserializationError error = deserializeJson(doc, payload);
     
     if (error) {
@@ -109,35 +111,28 @@ bool UpdateManager::fetchLatestRelease() {
         return false;
     }
     
-    // Extract version tag (e.g., "v1.0.0" or "1.0.0")
-    const char* tag = doc["tag_name"];
-    if (!tag) {
-        Serial.println("No tag_name found in response");
+    // Extract version information
+    const char* version = doc["version"];
+    if (!version) {
+        Serial.println("No version found in response");
         return false;
     }
     
-    latestVersion = String(tag);
-    // Remove 'v' prefix if present
-    if (latestVersion.startsWith("v") || latestVersion.startsWith("V")) {
-        latestVersion = latestVersion.substring(1);
+    latestVersion = String(version);
+    
+    // Get firmware download URL from GitHub Pages
+    const char* url = doc["download_url"];
+    if (url) {
+        downloadUrl = String(url);
+    } else {
+        // Fallback to static URL if not in JSON
+        downloadUrl = GITHUB_PAGES_FIRMWARE_URL;
     }
     
-    // Find firmware binary in assets
-    JsonArray assets = doc["assets"];
-    for (JsonObject asset : assets) {
-        const char* name = asset["name"];
-        if (name && (strstr(name, ".bin") != nullptr)) {
-            downloadUrl = asset["browser_download_url"].as<String>();
-            Serial.print("Found firmware: ");
-            Serial.println(downloadUrl);
-            break;
-        }
-    }
-    
-    if (downloadUrl.length() == 0) {
-        Serial.println("No firmware binary found in release");
-        return false;
-    }
+    Serial.print("Found firmware version: ");
+    Serial.println(latestVersion);
+    Serial.print("Download URL: ");
+    Serial.println(downloadUrl);
     
     return true;
 }
@@ -163,33 +158,6 @@ bool UpdateManager::isUpdateAvailable() {
     return updateAvailable;
 }
 
-String UpdateManager::resolveRedirectUrl(const String& url) {
-    WiFiClientSecure client;
-    HTTPClient http;
-    
-    client.setInsecure();
-    client.setTimeout(10000); // 10 second timeout for redirect check
-    client.setBufferSizes(512, 512);
-    
-    if (!http.begin(client, url)) {
-        return "";
-    }
-    
-    http.setFollowRedirects(HTTPC_DISABLE_FOLLOW_REDIRECTS);
-    http.setUserAgent("ESP-Smart-Meter");
-    
-    int httpCode = http.GET();
-    String location = "";
-    
-    if (httpCode == HTTP_CODE_FOUND || httpCode == HTTP_CODE_MOVED_PERMANENTLY || httpCode == HTTP_CODE_TEMPORARY_REDIRECT) {
-        location = http.header("Location");
-    }
-    
-    http.end();
-    
-    return location.length() > 0 ? location : url;
-}
-
 bool UpdateManager::performUpdate() {
     if (!updateAvailable || downloadUrl.length() == 0) {
         Serial.println("No update available or download URL not set");
@@ -205,26 +173,15 @@ bool UpdateManager::performUpdate() {
     ESPhttpUpdate.setLedPin(LED_BUILTIN, LOW);
     ESPhttpUpdate.rebootOnUpdate(true);
     
-    // Don't use setFollowRedirects at all - causes issues with GitHub's long Azure URLs
-    // Instead, manually resolve the redirect URL first
-    String actualUrl = resolveRedirectUrl(downloadUrl);
-    if (actualUrl.length() == 0) {
-        Serial.println("Failed to resolve download URL");
-        updateStatus = "URL resolution failed";
-        return false;
-    }
-    
-    Serial.print("Resolved URL: ");
-    Serial.println(actualUrl.substring(0, 100)); // Print first 100 chars only
-    
     // Configure the member WiFiClientSecure for HTTPS connection
     // Using a member variable ensures it persists for the object's lifetime
     updateClient.setInsecure(); // Skip certificate validation
     updateClient.setTimeout(120000); // 2 minutes timeout for large files
     updateClient.setBufferSizes(1024, 1024); // Larger buffers for better performance
     
-    // Use the resolved URL directly - no redirects needed
-    t_httpUpdate_return ret = ESPhttpUpdate.update(updateClient, actualUrl, currentVersion);
+    // GitHub Pages serves files directly - no redirects!
+    // This is much more reliable than GitHub Releases which redirect to Azure CDN with long URLs
+    t_httpUpdate_return ret = ESPhttpUpdate.update(updateClient, downloadUrl, currentVersion);
     
     switch(ret) {
         case HTTP_UPDATE_FAILED:

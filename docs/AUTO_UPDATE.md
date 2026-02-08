@@ -9,9 +9,28 @@ The ESP Smart Meter now includes an automatic firmware update feature that check
 ### Automatic Background Checks
 
 The device automatically checks for new firmware releases every hour by:
-1. Querying the GitHub API for the latest release
-2. Comparing the version tag with the current firmware version
+1. Fetching version information from GitHub Pages (`https://aviborg.github.io/esp-smart-meter/firmware/version.json`)
+2. Comparing the version with the current firmware version
 3. If a newer version is available, it marks an update as available
+
+### GitHub Pages Hosting
+
+Firmware binaries are hosted on GitHub Pages for reliable OTA updates:
+- **Version info**: `https://aviborg.github.io/esp-smart-meter/firmware/version.json`
+- **Firmware binary**: `https://aviborg.github.io/esp-smart-meter/firmware/latest.bin`
+
+**Why GitHub Pages?**
+- ✅ Direct HTTPS downloads (no 302 redirects)
+- ✅ Short, stable URLs that work with ESP8266
+- ✅ No time-limited signed URLs
+- ✅ Reliable and maintained by GitHub
+
+When you create a GitHub release, the automated workflow:
+1. Builds the firmware
+2. Uploads it to the release (for archival/download)
+3. Copies it to `docs/firmware/latest.bin` (for OTA updates)
+4. Updates `docs/firmware/version.json` with version metadata
+5. GitHub Pages serves these files directly to ESP devices
 
 ### Version Information
 

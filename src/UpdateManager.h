@@ -19,7 +19,6 @@ public:
     
 private:
     bool fetchLatestRelease();
-    String resolveRedirectUrl(const String& url);
     int compareVersions(String v1, String v2);
     
     String currentVersion;
@@ -32,7 +31,8 @@ private:
     WiFiClientSecure updateClient; // Persistent client for firmware updates
     
     static const unsigned long UPDATE_CHECK_INTERVAL = 3600000; // 1 hour in milliseconds
-    static const char* GITHUB_API_URL;
+    static const char* GITHUB_PAGES_VERSION_URL;
+    static const char* GITHUB_PAGES_FIRMWARE_URL;
 };
 
 #endif

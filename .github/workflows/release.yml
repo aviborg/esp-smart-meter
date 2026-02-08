@@ -53,3 +53,35 @@ jobs:
         files: esp-smart-meter-${{ github.event.release.tag_name }}.bin
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Copy firmware to GitHub Pages directory
+      run: |
+        VERSION="${{ github.event.release.tag_name }}"
+        # Remove 'v' prefix if present
+        VERSION_NUM="${VERSION#v}"
+        
+        # Copy firmware as latest.bin
+        cp esp-smart-meter-${VERSION}.bin docs/firmware/latest.bin
+        
+        # Create version.json with metadata
+        cat > docs/firmware/version.json << EOF
+        {
+          "version": "${VERSION_NUM}",
+          "build_timestamp": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")",
+          "download_url": "https://aviborg.github.io/esp-smart-meter/firmware/latest.bin",
+          "release_url": "https://github.com/aviborg/esp-smart-meter/releases/tag/${VERSION}"
+        }
+        EOF
+        
+        echo "Created version.json:"
+        cat docs/firmware/version.json
+        
+    - name: Commit and push firmware to repository
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git add docs/firmware/
+        git commit -m "Update firmware for release ${{ github.event.release.tag_name }}"
+        git push origin HEAD:${{ github.ref_name }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

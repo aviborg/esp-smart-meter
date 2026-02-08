@@ -2,78 +2,65 @@
 
 This guide explains how to create GitHub releases that work with the ESP Smart Meter's auto-update feature.
 
+## Overview
+
+The auto-update system uses **GitHub Pages** to host firmware binaries. When you create a release, the automated workflow:
+1. Builds the firmware with the correct version
+2. Uploads the binary to the GitHub release (for manual downloads)
+3. Copies the firmware to `docs/firmware/latest.bin`
+4. Updates `docs/firmware/version.json` with version metadata
+5. GitHub Pages serves these files to ESP devices for OTA updates
+
 ## Release Checklist
 
 Before creating a release, ensure:
 
-- [ ] Version number updated in `include/version.h`
-- [ ] Code changes committed and pushed
+- [ ] GitHub Pages is enabled (Settings → Pages → Source: main → /docs)
+- [ ] Code changes committed and pushed to main
 - [ ] All tests pass (if applicable)
 - [ ] Changelog/release notes prepared
-- [ ] Firmware successfully builds
 
-## Building Firmware for Release
+**Note**: You do NOT need to manually update `include/version.h` - the workflow does this automatically!
 
-### 1. Update Version Number
+## Creating a GitHub Release (Automated Build)
 
-Edit `include/version.h`:
-```cpp
-#define FIRMWARE_VERSION "1.1.0"  // Update this
-```
-
-### 2. Build the Firmware
-
-```bash
-# Build for ESP8266
-platformio run -e esp8266
-
-# The firmware binary will be at:
-# .pio/build/esp8266/firmware.bin
-```
-
-### 3. Test Locally (Optional but Recommended)
-
-```bash
-# Upload to a test device
-platformio run -e esp8266 --target upload --upload-port <device-ip>
-
-# Verify the device boots and works correctly
-```
-
-## Creating the GitHub Release
-
-### Via GitHub Web Interface
+### Via GitHub Web Interface (Recommended)
 
 1. **Navigate to Releases**
    - Go to: `https://github.com/aviborg/esp-smart-meter/releases`
    - Click "Draft a new release"
 
 2. **Choose a Tag**
-   - Tag version: `v1.1.0` (must start with 'v' or just be the version number)
-   - Target: `main` (or your release branch)
+   - Tag version: `v1.1.0` (must start with 'v', e.g., v0.0.4, v1.0.0)
+   - Target: `main` branch
+   - Click "Create new tag"
 
 3. **Fill Release Information**
    - Release title: `v1.1.0` or descriptive name
    - Description: List changes, fixes, and new features
 
-4. **Upload Firmware Binary**
-   - Click "Attach binaries by dropping them here or selecting them"
-   - Upload `.pio/build/esp8266/firmware.bin`
-   - Optionally rename to `esp-smart-meter-v1.1.0.bin` for clarity
-
-5. **Publish Release**
-   - Choose "Set as the latest release" (for auto-update to detect it)
+4. **Publish Release**
+   - Choose "Set as the latest release"
    - Click "Publish release"
+
+5. **Automated Workflow**
+   The GitHub Actions workflow will automatically:
+   - Build the firmware with the version from the tag
+   - Upload `esp-smart-meter-v1.1.0.bin` to the release
+   - Copy firmware to `docs/firmware/latest.bin`
+   - Update `docs/firmware/version.json`
+   - Commit and push to GitHub Pages
 
 ### Via GitHub CLI
 
 ```bash
-# Create and upload release
+# Create a release (workflow will build automatically)
 gh release create v1.1.0 \
-  .pio/build/esp8266/firmware.bin \
   --title "Release v1.1.0" \
   --notes "Release notes here"
 ```
+
+## Manual Build (Advanced)
 
 ## Release Naming Conventions
 
