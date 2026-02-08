@@ -147,6 +147,4 @@ void AmsWebServer::updateTrigger() {
 	// Perform update (this will reboot the device)
 	// The UpdateManager will handle the timing internally
 	updateManager->performUpdate();
-=======
->>>>>>> 22536ed
 }
