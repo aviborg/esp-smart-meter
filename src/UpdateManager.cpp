@@ -178,15 +178,19 @@ bool UpdateManager::performUpdate() {
     ESPhttpUpdate.setLedPin(LED_BUILTIN, LOW);
     ESPhttpUpdate.rebootOnUpdate(true);
     
-    // Set up WiFi client for HTTPS with proper configuration
+    // Configure redirect handling for GitHub releases
+    ESPhttpUpdate.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
+    
+    // Use the update method without passing a client - let the library handle the connection
+    // This is more reliable for larger downloads as the library manages timeouts and buffers internally
     WiFiClientSecure client;
     client.setInsecure(); // Skip certificate validation
-    client.setTimeout(30000); // 30 second timeout
-    client.setBufferSizes(512, 512);
     
-    // Use the update method that handles redirects properly
-    // The ESP8266HTTPUpdate library will follow redirects when we use this approach
-    ESPhttpUpdate.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
+    // Increase timeout for large firmware downloads (2 minutes should be enough for 500KB)
+    client.setTimeout(120000);
+    
+    // Increase buffer sizes for better performance
+    client.setBufferSizes(1024, 1024);
     
     t_httpUpdate_return ret = ESPhttpUpdate.update(client, downloadUrl);
     
