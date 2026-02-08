@@ -63,6 +63,7 @@ jobs:
         # Fetch the latest main branch
         git fetch origin main
         git checkout main
+        mkdir -p docs/firmware
         
         # Clean up old firmware files (keep only version.json and README.md)
         find docs/firmware/ -name "*.bin" -type f -delete
