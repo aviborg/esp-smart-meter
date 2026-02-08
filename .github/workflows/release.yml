@@ -9,6 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write  # Required to upload assets to release
+      pull-requests: write  # Required to create pull requests
     
     steps:
     - name: Checkout code
